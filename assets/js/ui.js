@@ -97,8 +97,7 @@ export const UI = {
     if(user){
       const name = document.createElement('div');
       name.className = 'user text-sm font-medium';
-      name.textContent = \
-`${user.displayName} • ${user.role}`;
+      name.textContent = `${user.displayName} • ${user.role}`;
       controls.appendChild(name);
 
       const logout = document.createElement('button');
