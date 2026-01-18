@@ -14,7 +14,8 @@ import { UI } from './ui.js';
 
   // Initialize UI and Router
   UI.init(document.getElementById('app'));
-  Router.init(UI.routeHandler);
+  // Bind UI.routeHandler so `this` inside routeHandler points to UI
+  Router.init(UI.routeHandler.bind(UI));
 
   // If logged in, navigate to dashboard; else show login
   const me = Auth.currentUser();
