@@ -4,10 +4,32 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>B Rimon Management</title>
+
+  <!-- Google Font Inter -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#2596be',
+            accent: '#b3281c'
+          }
+        }
+      }
+    }
+  </script>
+
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+
+  <meta name="description" content="B Rimon Management - gestion des projets, tâches et commandes (frontend, stockage local)" />
 </head>
-<body>
+<body class="antialiased bg-slate-50">
   <div id="app" class="app-root"></div>
 
   <!-- jsPDF for PDF export (CDN) -->

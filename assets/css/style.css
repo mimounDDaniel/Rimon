@@ -1,88 +1,39 @@
 :root{
-  --primary:#2596be;
-  --bg:#f6f8fa;
-  --card:#ffffff;
-  --muted:#6b7280;
-  --success:#16a34a;
-  --danger:#ef4444;
-  --glass: rgba(255,255,255,0.6);
-  --shadow: 0 6px 16px rgba(18,24,38,0.08);
-  --radius:10px;
-  --max-width:1100px;
+  --primary: #2596be;
+  --accent: #b3281c;
 }
 
-/* Reset */
+/* Minimal custom CSS, Tailwind handles layout & responsiveness */
 *{box-sizing:border-box}
-html,body,#app{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
-body{background:linear-gradient(180deg,var(--bg),#fff);color:#0f172a;}
+html,body,#app{height:100%;margin:0;font-family:'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;}
 
-/* App container */
-.app-root{display:flex;flex-direction:column;align-items:center;padding:24px;min-height:100%}
+.app-root{padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px;min-height:100vh}
 
-/* Topbar */
-.topbar{width:100%;max-width:var(--max-width);display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.brand{display:flex;align-items:center;gap:12px}
-.brand img{height:44px;width:44px}
+/* Keep legacy classes for compatibility */
+.topbar{width:100%;max-width:1200px;background:linear-gradient(90deg,rgba(255,255,255,0.8),#fff);border-radius:12px;padding:12px;border:1px solid rgba(0,0,0,0.04);display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;gap:12px;align-items:center}
+.brand img{height:48px;width:48px;border-radius:10px}
 .brand h1{font-size:18px;margin:0;color:var(--primary)}
-.controls{display:flex;gap:8px;align-items:center}
 
-/* Layout */
-.container{width:100%;max-width:var(--max-width);display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start}
-@media (max-width:900px){ .container{grid-template-columns:1fr; padding:0 12px} .sidebar{order:2} }
+.container{width:100%;max-width:1200px;display:grid;grid-template-columns:260px 1fr;gap:18px;margin-top:8px}
+@media(max-width:1024px){.container{grid-template-columns:1fr;padding:0 12px}}
 
-/* Sidebar */
-.sidebar{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
-.nav{display:flex;flex-direction:column;gap:8px}
-.nav button{background:transparent;border:none;padding:10px;border-radius:8px;text-align:start;cursor:pointer}
-.nav button.active{background:linear-gradient(90deg, rgba(37,150,190,0.12), rgba(37,150,190,0.06));color:var(--primary)}
-
-/* Card */
-.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.sidebar{background:#fff;border-radius:12px;padding:16px;border:1px solid rgba(0,0,0,0.04)}
+.card{background:#fff;border-radius:12px;padding:16px;border:1px solid rgba(0,0,0,0.04)}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.h-title{font-weight:600}
+.h-title{font-weight:700}
 
-/* Dashboard grid */
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-@media (max-width:900px){ .grid{grid-template-columns:1fr} }
+/* task card */
+.task-card{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;border:1px solid #f1f5f9;background:#fff}
+.small{font-size:13px;color:#6b7280}
+.btn{padding:8px 12px;border-radius:10px;border:none;background:var(--primary);color:#fff;cursor:pointer}
+.btn.secondary{background:transparent;border:1px solid rgba(37,150,190,0.06);color:var(--primary)}
+.btn.ghost{background:transparent;border:1px solid #e6eef6;color:#6b7280}
 
-/* Table */
-.table{width:100%;border-collapse:collapse}
-.table th, .table td{padding:8px 10px;border-bottom:1px solid #eef2f6;text-align:left}
-.table th{color:var(--muted);font-size:13px}
-.row-actions{display:flex;gap:8px}
+/* modal */
+.modal-backdrop{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,7,18,0.45);z-index:80}
+.modal{width:95%;max-width:720px;background:#fff;padding:18px;border-radius:12px}
 
-/* Forms */
-.form-row{display:flex;gap:10px;flex-wrap:wrap}
-.input, textarea, select{padding:8px 10px;border-radius:8px;border:1px solid #e6eef6;background:#fbfdff;min-width:0}
-textarea{min-height:80px;resize:vertical}
-
-/* Buttons */
-.btn{padding:8px 12px;border-radius:8px;border:none;background:var(--primary);color:#fff;cursor:pointer}
-.btn.secondary{background:#e6f7fb;color:var(--primary)}
-.btn.ghost{background:transparent;border:1px solid #e6eef6;color:var(--muted)}
-.btn.danger{background:var(--danger)}
-
-/* small helpers */
-.kv{display:flex;gap:8px;align-items:center}
-.badge{padding:6px 8px;border-radius:999px;background:#eef7fb;color:var(--primary);font-size:12px}
-
-/* Modal */
-.modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.5);display:flex;align-items:center;justify-content:center;z-index:60}
-.modal{background:var(--card);padding:18px;border-radius:12px;max-width:720px;width:95%;box-shadow:var(--shadow);animation:pop .12s ease}
-@keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
-
-/* Tiny animations */
-.fade{transition:all .18s ease}
-.card, .nav button{transition:transform .18s ease, box-shadow .18s ease}
-.nav button:hover{transform:translateX(6px)}
-
-/* RTL adjustments (applied dynamically) */
-.rtl{direction:rtl}
-.ltr{direction:ltr}
-
-/* Footer */
-.footer{margin-top:20px;color:var(--muted);font-size:13px}
-
-/* small responsive tweaks */
-.small{font-size:13px}
-.center{display:flex;align-items:center;justify-content:center}
+/* utility accent */
+.accent{color:var(--accent)}
+.accent-bg{background:linear-gradient(90deg, rgba(179,40,28,0.07), rgba(37,150,190,0.03));padding:8px;border-radius:8px}
