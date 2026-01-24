@@ -81,7 +81,7 @@ body.is-rtl .sidebar { text-align: right; }
   border-radius: 8px;
   border: 1px solid var(--gray-200);
   background: #fff;
-  font-size: 0.875rem;
+  font-size: 1.25rem; /* Larger for flag emojis */
   cursor: pointer;
   transition: all 0.2s;
 }

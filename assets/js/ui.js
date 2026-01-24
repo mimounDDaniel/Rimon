@@ -81,7 +81,7 @@ export const UI = {
     const logo = document.createElement('div');
     logo.className = 'login-logo';
     const img = document.createElement('img');
-    img.src = 'assets/logo.png';
+    img.src = 'assets/logo.svg';
     img.alt = I18n.t('appName');
     logo.appendChild(img);
     card.appendChild(logo);
@@ -145,8 +145,8 @@ export const UI = {
     langSelect.className = 'lang-selector';
     langSelect.setAttribute('aria-label', I18n.t('selectLanguage'));
     langSelect.innerHTML = `
-      <option value="en">English</option>
-      <option value="he">עברית</option>
+      <option value="en">🇺🇸</option>
+      <option value="he">🇮🇱</option>
     `;
     langSelect.value = I18n.lang();
     langSelect.addEventListener('change', (e) => {
@@ -205,16 +205,13 @@ export const UI = {
     hamburger.addEventListener('click', () => this._toggleMobileMenu());
     leftSide.appendChild(hamburger);
 
-    // Brand
+    // Brand (logo only, no title)
     const brand = document.createElement('div');
     brand.className = 'brand';
     const img = document.createElement('img');
-    img.src = 'assets/logo.png';
+    img.src = 'assets/logo.svg';
     img.alt = I18n.t('appName');
     brand.appendChild(img);
-    const title = document.createElement('h1');
-    title.textContent = I18n.t('appName');
-    brand.appendChild(title);
     leftSide.appendChild(brand);
 
     wrapper.appendChild(leftSide);
@@ -223,13 +220,13 @@ export const UI = {
     const controls = document.createElement('div');
     controls.className = 'controls';
 
-    // Language selector
+    // Language selector (with flag emojis)
     const langSelect = document.createElement('select');
     langSelect.className = 'lang-selector';
     langSelect.setAttribute('aria-label', I18n.t('selectLanguage'));
     langSelect.innerHTML = `
-      <option value="en">English</option>
-      <option value="he">עברית</option>
+      <option value="en">🇺🇸</option>
+      <option value="he">🇮🇱</option>
     `;
     langSelect.value = I18n.lang();
     langSelect.addEventListener('change', (e) => {
@@ -398,8 +395,8 @@ export const UI = {
     const langSelect = document.createElement('select');
     langSelect.className = 'lang-selector';
     langSelect.innerHTML = `
-      <option value="en">English</option>
-      <option value="he">עברית</option>
+      <option value="en">🇺🇸</option>
+      <option value="he">🇮🇱</option>
     `;
     langSelect.value = I18n.lang();
     langSelect.addEventListener('change', (e) => {
