@@ -21,8 +21,8 @@ function _hideLoader(){
     // Initialize storage (seed data)
     await Storage.init();
 
-    // Initialize i18n (default Hebrew) - await if returns a promise
-    await I18n.init({defaultLang:'he'});
+    // Initialize i18n (default English) - await if returns a promise
+    await I18n.init({defaultLang:'en'});
 
     // Initialize UI and Router
     UI.init(document.getElementById('app'));
