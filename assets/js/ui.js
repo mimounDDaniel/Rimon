@@ -183,6 +183,9 @@ export const UI = {
   },
 
   _renderTopbar(){
+    const currentUser = Auth.currentUser();
+    if(!currentUser) return document.createElement('header'); // Safety check
+    
     const wrapper = document.createElement('header');
     wrapper.className = 'sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm';
     wrapper.innerHTML = `
@@ -220,11 +223,11 @@ export const UI = {
           <!-- User info -->
           <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
             <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
-              ${Auth.currentUser().displayName.charAt(0).toUpperCase()}
+              ${currentUser.displayName.charAt(0).toUpperCase()}
             </div>
             <div class="text-sm">
-              <div class="font-medium text-gray-900">${Auth.currentUser().displayName}</div>
-              <div class="text-xs text-gray-500">${Auth.currentUser().role}</div>
+              <div class="font-medium text-gray-900">${currentUser.displayName}</div>
+              <div class="text-xs text-gray-500">${currentUser.role}</div>
             </div>
           </div>
           
