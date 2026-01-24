@@ -64,6 +64,8 @@ export const UI = {
       this._renderOrders(content);
     } else if (path.startsWith('/projects')) {
       this._renderProjects(content);
+    } else if (path.startsWith('/users')) {
+      this._renderUsers(content);
     } else {
       content.innerHTML = `<div class="card"><div class="h-title">${I18n.t('notFound')}</div></div>`;
     }
@@ -81,7 +83,7 @@ export const UI = {
     const logo = document.createElement('div');
     logo.className = 'login-logo';
     const img = document.createElement('img');
-    img.src = 'assets/logo.svg';
+    img.src = 'assets/logo.png';
     img.alt = I18n.t('appName');
     logo.appendChild(img);
     card.appendChild(logo);
@@ -209,7 +211,7 @@ export const UI = {
     const brand = document.createElement('div');
     brand.className = 'brand';
     const img = document.createElement('img');
-    img.src = 'assets/logo.svg';
+    img.src = 'assets/logo.png';
     img.alt = I18n.t('appName');
     brand.appendChild(img);
     leftSide.appendChild(brand);
@@ -283,14 +285,18 @@ export const UI = {
     const nav = document.createElement('nav');
     nav.className = 'nav';
 
+    const me = Auth.currentUser();
     const items = [
-      { path: '/dashboard', label: I18n.t('dashboard') },
-      { path: '/tasks', label: I18n.t('tasks') },
-      { path: '/projects', label: I18n.t('projects') },
-      { path: '/orders', label: I18n.t('orders') }
+      { path: '/dashboard', label: I18n.t('dashboard'), roles: ['admin', 'mini_admin', 'employee', 'orders_manager'] },
+      { path: '/tasks', label: I18n.t('tasks'), roles: ['admin', 'mini_admin', 'employee'] },
+      { path: '/projects', label: I18n.t('projects'), roles: ['admin', 'mini_admin', 'employee'] },
+      { path: '/orders', label: I18n.t('orders'), roles: ['admin', 'mini_admin', 'orders_manager'] },
+      { path: '/users', label: I18n.t('users'), roles: ['admin', 'mini_admin'] }
     ];
 
     items.forEach(it => {
+      if (!it.roles.includes(me.role)) return;
+      
       const btn = document.createElement('button');
       btn.textContent = it.label;
       btn.setAttribute('aria-label', it.label);
@@ -356,14 +362,18 @@ export const UI = {
     const navSection = document.createElement('div');
     navSection.className = 'mobile-menu-nav';
 
+    const me = Auth.currentUser();
     const items = [
-      { path: '/dashboard', label: I18n.t('dashboard') },
-      { path: '/tasks', label: I18n.t('tasks') },
-      { path: '/projects', label: I18n.t('projects') },
-      { path: '/orders', label: I18n.t('orders') }
+      { path: '/dashboard', label: I18n.t('dashboard'), roles: ['admin', 'mini_admin', 'employee', 'orders_manager'] },
+      { path: '/tasks', label: I18n.t('tasks'), roles: ['admin', 'mini_admin', 'employee'] },
+      { path: '/projects', label: I18n.t('projects'), roles: ['admin', 'mini_admin', 'employee'] },
+      { path: '/orders', label: I18n.t('orders'), roles: ['admin', 'mini_admin', 'orders_manager'] },
+      { path: '/users', label: I18n.t('users'), roles: ['admin', 'mini_admin'] }
     ];
 
     items.forEach(it => {
+      if (!it.roles.includes(me.role)) return;
+      
       const btn = document.createElement('button');
       btn.textContent = it.label;
       btn.className = 'nav button';
@@ -482,29 +492,50 @@ export const UI = {
     const grid = document.createElement('div');
     grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
 
-    // Tasks
+    // Tasks (filtered by role)
     const tasksCol = document.createElement('div');
     const tasksHeader = document.createElement('h3');
     tasksHeader.className = 'font-semibold mb-3';
     tasksHeader.textContent = I18n.t('recentTasks');
     tasksCol.appendChild(tasksHeader);
 
-    const tasks = Storage.tasks().slice().reverse().slice(0, 5);
-    tasks.forEach(t => {
-      const el = document.createElement('div');
-      el.className = 'task-card';
-      el.innerHTML = `
-        <div class="flex-1">
-          <strong>${t.title}</strong>
-          <div class="small">${t.description || ''}</div>
-        </div>
-        <div class="text-right">
-          <div class="small">${I18n.t('planned')}: ${t.plannedHours || 0}h</div>
-          <div class="mt-2"><button class="btn secondary" data-id="${t.id}">${I18n.t('open')}</button></div>
-        </div>
-      `;
-      tasksCol.appendChild(el);
-    });
+    const me = Auth.currentUser();
+    let allTasks = Storage.tasks();
+    
+    // Filter tasks based on role
+    if (me.role === 'employee') {
+      // Employees only see tasks assigned to them
+      allTasks = allTasks.filter(t => t.assignees && t.assignees.includes(me.username));
+    } else if (me.role === 'orders_manager') {
+      // Orders managers don't see tasks
+      allTasks = [];
+    }
+    // admin and mini_admin see all tasks
+    
+    const tasks = allTasks.slice().reverse().slice(0, 5);
+    
+    if (tasks.length === 0) {
+      const noTasks = document.createElement('div');
+      noTasks.className = 'small';
+      noTasks.textContent = 'No tasks';
+      tasksCol.appendChild(noTasks);
+    } else {
+      tasks.forEach(t => {
+        const el = document.createElement('div');
+        el.className = 'task-card';
+        el.innerHTML = `
+          <div class="flex-1">
+            <strong>${t.title}</strong>
+            <div class="small">${t.description || ''}</div>
+          </div>
+          <div class="text-right">
+            <div class="small">${I18n.t('planned')}: ${t.plannedHours || 0}h</div>
+            <div class="mt-2"><button class="btn secondary" data-id="${t.id}">${I18n.t('open')}</button></div>
+          </div>
+        `;
+        tasksCol.appendChild(el);
+      });
+    }
 
     // Orders
     const ordersCol = document.createElement('div');
@@ -554,6 +585,14 @@ export const UI = {
 
   _renderTasks(container) {
     container.innerHTML = '';
+    const me = Auth.currentUser();
+    
+    // Don't show tasks page for orders_manager
+    if (me.role === 'orders_manager') {
+      container.innerHTML = '<div class="card"><div class="h-title">Access Denied</div><div class="small">Your role does not have access to tasks.</div></div>';
+      return;
+    }
+    
     const card = document.createElement('div');
     card.className = 'card';
 
@@ -573,8 +612,17 @@ export const UI = {
 
     const list = document.createElement('div');
     list.className = 'grid gap-3';
-    const tasks = Storage.tasks();
-    tasks.forEach(t => {
+    
+    let allTasks = Storage.tasks();
+    
+    // Filter tasks based on role
+    if (me.role === 'employee') {
+      // Employees only see tasks assigned to them
+      allTasks = allTasks.filter(t => t.assignees && t.assignees.includes(me.username));
+    }
+    // admin and mini_admin see all tasks
+    
+    allTasks.forEach(t => {
       const el = document.createElement('div');
       el.className = 'task-card';
       el.innerHTML = `
@@ -890,5 +938,195 @@ export const UI = {
     content.textContent = 'Project management (to be completed)';
     card.appendChild(content);
     container.appendChild(card);
+  },
+
+  _renderUsers(container) {
+    container.innerHTML = '';
+    const me = Auth.currentUser();
+    
+    // Only admin and mini_admin can access
+    if (!['admin', 'mini_admin'].includes(me.role)) {
+      container.innerHTML = '<div class="card"><div class="h-title">Access Denied</div></div>';
+      return;
+    }
+    
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const header = document.createElement('div');
+    header.className = 'header';
+    const headerTitle = document.createElement('div');
+    headerTitle.className = 'h-title';
+    headerTitle.textContent = I18n.t('users');
+    header.appendChild(headerTitle);
+
+    const newBtn = document.createElement('button');
+    newBtn.className = 'btn';
+    newBtn.textContent = '+ New User';
+    header.appendChild(newBtn);
+    card.appendChild(header);
+
+    const list = document.createElement('div');
+    list.className = 'grid gap-3';
+    
+    const users = Storage.users();
+    users.forEach(u => {
+      const el = document.createElement('div');
+      el.className = 'task-card';
+      el.innerHTML = `
+        <div class="flex-1">
+          <strong>${u.displayName}</strong>
+          <div class="small">@${u.username} • ${u.role}</div>
+        </div>
+        <div class="text-right">
+          <button class="btn secondary" data-id="${u.id}">Edit</button>
+        </div>
+      `;
+      list.appendChild(el);
+    });
+    
+    card.appendChild(list);
+    container.appendChild(card);
+
+    // Event handlers
+    newBtn.addEventListener('click', () => this._openUserModal());
+    list.querySelectorAll('button[data-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        this._openUserModal(id);
+      });
+    });
+  },
+
+  _openUserModal(userId = null) {
+    const user = userId ? Storage.users().find(u => u.id === userId) : null;
+    const modalBg = document.createElement('div');
+    modalBg.className = 'modal-backdrop';
+    modalBg.setAttribute('role', 'dialog');
+    modalBg.setAttribute('aria-modal', 'true');
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+
+    const header = document.createElement('div');
+    header.className = 'header';
+    const headerTitle = document.createElement('div');
+    headerTitle.className = 'h-title';
+    headerTitle.textContent = user ? `Edit User: ${user.displayName}` : 'Create User';
+    header.appendChild(headerTitle);
+    modal.appendChild(header);
+
+    const form = document.createElement('div');
+    form.className = 'flex flex-col gap-3';
+
+    const usernameInput = document.createElement('input');
+    usernameInput.className = 'input';
+    usernameInput.placeholder = 'Username';
+    usernameInput.value = user ? user.username : '';
+    usernameInput.disabled = !!user; // Can't change username
+    form.appendChild(usernameInput);
+
+    const displayNameInput = document.createElement('input');
+    displayNameInput.className = 'input';
+    displayNameInput.placeholder = 'Display Name';
+    displayNameInput.value = user ? user.displayName : '';
+    form.appendChild(displayNameInput);
+
+    const roleSelect = document.createElement('select');
+    roleSelect.className = 'input';
+    roleSelect.innerHTML = `
+      <option value="admin">Admin</option>
+      <option value="mini_admin">Mini Admin</option>
+      <option value="employee">Employee</option>
+      <option value="orders_manager">Orders Manager</option>
+    `;
+    roleSelect.value = user ? user.role : 'employee';
+    form.appendChild(roleSelect);
+
+    if (!user) {
+      const passwordInput = document.createElement('input');
+      passwordInput.className = 'input';
+      passwordInput.type = 'password';
+      passwordInput.placeholder = 'Password';
+      form.appendChild(passwordInput);
+    }
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'flex justify-end gap-2 mt-2';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn ghost';
+    cancelBtn.textContent = I18n.t('cancel');
+    cancelBtn.addEventListener('click', () => modalBg.remove());
+    btnRow.appendChild(cancelBtn);
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn';
+    saveBtn.textContent = I18n.t('save');
+    saveBtn.addEventListener('click', async () => {
+      const displayName = displayNameInput.value.trim();
+      const role = roleSelect.value;
+
+      if (!displayName) {
+        alert('Display name required');
+        return;
+      }
+
+      if (user) {
+        // Update existing user
+        Storage.updateUser(user.id, { displayName, role });
+        modalBg.remove();
+        Router.navigate('/users');
+      } else {
+        // Create new user
+        const username = usernameInput.value.trim();
+        const password = form.querySelector('input[type="password"]').value;
+        
+        if (!username || !password) {
+          alert('Username and password required');
+          return;
+        }
+
+        try {
+          await Auth.createUser(username, displayName, role, password);
+          modalBg.remove();
+          Router.navigate('/users');
+        } catch (err) {
+          alert('Error creating user: ' + err.message);
+        }
+      }
+    });
+    btnRow.appendChild(saveBtn);
+    form.appendChild(btnRow);
+
+    modal.appendChild(form);
+    modalBg.appendChild(modal);
+    document.body.appendChild(modalBg);
+
+    // Keyboard handlers
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        modalBg.remove();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+
+    // Close on backdrop click
+    modalBg.addEventListener('click', (e) => {
+      if (e.target === modalBg) {
+        modalBg.remove();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    });
+
+    // Focus first input
+    setTimeout(() => {
+      if (user) {
+        displayNameInput.focus();
+      } else {
+        usernameInput.focus();
+      }
+    }, 100);
   }
 };
