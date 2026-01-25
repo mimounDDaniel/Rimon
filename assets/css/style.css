@@ -24,6 +24,19 @@
   animation: gradientShift 8s ease infinite;
 }
 
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .gradient-animated {
+    animation: none;
+    background-size: 100% 100%;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Reset & Base */
 * { box-sizing: border-box; }
 html, body, #app { height: 100%; margin: 0; font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }

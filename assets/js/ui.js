@@ -770,8 +770,11 @@ export const UI = {
       'refused': 'background: #ef4444; color: white;',
       'cancelled': 'background: #6b7280; color: white;'
     };
+    // Default to unassigned if status is null/undefined
     const style = statusColors[status] || statusColors['unassigned'];
-    const label = I18n.t(status.replace(' ', '')) || status;
+    // Handle status translation - replace all spaces with empty string for translation key
+    const translationKey = (status || 'unassigned').replace(/\s+/g, '');
+    const label = I18n.t(translationKey) || status;
     return `<span style="padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; ${style}">${label}</span>`;
   },
 
@@ -1016,8 +1019,9 @@ export const UI = {
         Storage.addTask(newTask);
       }
       modalBg.remove();
-      // Refresh current view
-      window.location.reload();
+      // Refresh current view by re-navigating to current route
+      const currentPath = window.location.hash.substring(1);
+      Router.navigate(currentPath || '/dashboard');
     });
     btnRow.appendChild(saveBtn);
     form.appendChild(btnRow);
