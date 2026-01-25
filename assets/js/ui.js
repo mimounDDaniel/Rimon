@@ -1036,7 +1036,7 @@ export const UI = {
           if (!task.comments) task.comments = [];
           updates.comments = [...task.comments, {
             by: me.username,
-            text: `${I18n.t('statusChange')}: ${I18n.t(task.status.replace(' ', ''))} → ${I18n.t(status.replace(' ', ''))}`,
+            text: `${I18n.t('statusChange')}: ${I18n.t(task.status.replace(/\s+/g, ''))} → ${I18n.t(status.replace(/\s+/g, ''))}`,
             at: Utils.nowIso()
           }];
         }
@@ -1168,7 +1168,7 @@ export const UI = {
       </div>
       <div style="padding: 0.75rem; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #22c55e;">
         <div style="font-size: 0.875rem; color: #15803d; font-weight: 600;">${I18n.t('status')}</div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: #166534;">${I18n.t(task.status.replace(' ', ''))}</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #166534;">${I18n.t(task.status.replace(/\s+/g, ''))}</div>
       </div>
     `;
     content.appendChild(detailsGrid);
@@ -1278,7 +1278,7 @@ export const UI = {
         if (!task.comments) task.comments = [];
         updates.comments = [...task.comments, {
           by: me.username,
-          text: `${I18n.t('statusChange')}: ${I18n.t(task.status.replace(' ', ''))} → ${I18n.t(newStatus.replace(' ', ''))}`,
+          text: `${I18n.t('statusChange')}: ${I18n.t(task.status.replace(/\s+/g, ''))} → ${I18n.t(newStatus.replace(/\s+/g, ''))}`,
           at: Utils.nowIso()
         }];
       }
@@ -1383,9 +1383,9 @@ export const UI = {
       urgentFilter.style.flex = '1';
       urgentFilter.style.minWidth = '150px';
       urgentFilter.innerHTML = `
-        <option value="">All Orders</option>
+        <option value="">${I18n.t('allOrders')}</option>
         <option value="urgent">🔥 ${I18n.t('urgent')} Only</option>
-        <option value="not-urgent">Not Urgent</option>
+        <option value="not-urgent">${I18n.t('notUrgent')}</option>
       `;
       filtersDiv.appendChild(urgentFilter);
       

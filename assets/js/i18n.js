@@ -72,6 +72,7 @@ export const I18n = {
       notes: 'Notes',
       urgent: 'Urgent',
       markAsUrgent: 'Mark as urgent',
+      notUrgent: 'Not Urgent',
       none: 'None',
       
       // Tasks
@@ -89,6 +90,7 @@ export const I18n = {
       assigned: 'Assigned',
       undefined: 'Undefined',
       allStatuses: 'All Statuses',
+      allOrders: 'All Orders',
       filterByStatus: 'Filter by status',
       filterByProject: 'Filter by project',
       allProjects: 'All Projects',
@@ -200,6 +202,7 @@ export const I18n = {
       notes: 'הערות',
       urgent: 'דחוף',
       markAsUrgent: 'סמן כדחוף',
+      notUrgent: 'לא דחוף',
       none: 'אין',
       
       // Tasks
@@ -217,6 +220,7 @@ export const I18n = {
       assigned: 'משוייך',
       undefined: 'לא מוגדר',
       allStatuses: 'כל הסטטוסים',
+      allOrders: 'כל ההזמנות',
       filterByStatus: 'סנן לפי סטטוס',
       filterByProject: 'סנן לפי פרויקט',
       allProjects: 'כל הפרויקטים',
