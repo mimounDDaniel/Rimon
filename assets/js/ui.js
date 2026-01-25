@@ -575,7 +575,7 @@ export const UI = {
       orders.forEach(o => {
         const el = document.createElement('div');
         el.className = 'task-card';
-        const urgentBadge = o.isUrgent ? '<span class="badge badge-urgent">Urgent</span>' : '';
+        const urgentBadge = o.isUrgent ? `<span class="badge badge-urgent">${I18n.t('urgent')}</span>` : '';
         el.innerHTML = `
           <div class="flex-1">
             <strong>${o.title}</strong> ${urgentBadge}
@@ -644,7 +644,7 @@ export const UI = {
     } else if (view === 'all') {
       // Only admins and mini_admins can see all tasks
       if (me.role !== 'admin' && me.role !== 'mini_admin') {
-        container.innerHTML = '<div class="card"><div class="h-title">Access Denied</div><div class="small">Your role does not have access to all tasks.</div></div>';
+        container.innerHTML = `<div class="card"><div class="h-title">${I18n.t('accessDenied')}</div><div class="small">${I18n.t('noAccessToAllTasks')}</div></div>`;
         return;
       }
       // Show all tasks (no filtering)
@@ -842,7 +842,7 @@ export const UI = {
     } else if (view === 'all') {
       // Only admins, mini_admins, and orders_manager can see all orders
       if (me.role !== 'admin' && me.role !== 'mini_admin' && me.role !== 'orders_manager') {
-        container.innerHTML = '<div class="card"><div class="h-title">Access Denied</div><div class="small">Your role does not have access to all orders.</div></div>';
+        container.innerHTML = `<div class="card"><div class="h-title">${I18n.t('accessDenied')}</div><div class="small">${I18n.t('noAccessToAllOrders')}</div></div>`;
         return;
       }
       // Show all orders (no filtering)
@@ -852,8 +852,8 @@ export const UI = {
     orders.forEach(o => {
       const el = document.createElement('div');
       el.className = 'task-card';
-      const urgentBadge = o.isUrgent ? '<span class="badge badge-urgent">🔥 Urgent</span>' : '';
-      const arrivalInfo = o.arrivalDate ? `<div class="text-xs text-gray-600">Arrival: ${new Date(o.arrivalDate).toLocaleDateString()}</div>` : '';
+      const urgentBadge = o.isUrgent ? `<span class="badge badge-urgent">🔥 ${I18n.t('urgent')}</span>` : '';
+      const arrivalInfo = o.arrivalDate ? `<div class="text-xs text-gray-600">${I18n.t('arrivalDate')}: ${new Date(o.arrivalDate).toLocaleDateString()}</div>` : '';
       el.innerHTML = `
         <div class="flex-1">
           <strong>${o.title}</strong> ${urgentBadge}
@@ -986,7 +986,7 @@ export const UI = {
         <div><strong>${I18n.t('description')}:</strong> ${order.description || I18n.t('none')}</div>
         <div><strong>${I18n.t('requestedBy')}:</strong> ${order.requestedBy}</div>
         <div><strong>${I18n.t('date')}:</strong> ${new Date(order.date).toLocaleDateString()}</div>
-        <div><strong>${I18n.t('urgent')}:</strong> ${order.isUrgent ? '🔥 Yes' : 'No'}</div>
+        <div><strong>${I18n.t('urgent')}:</strong> ${order.isUrgent ? `🔥 ${I18n.t('yes')}` : I18n.t('no')}</div>
       `;
       form.appendChild(detailsDiv);
 

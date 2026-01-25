@@ -40,6 +40,8 @@ export const I18n = {
       close: 'Close',
       open: 'Open',
       view: 'View',
+      yes: 'Yes',
+      no: 'No',
       
       // Common labels
       title: 'Title',
@@ -92,6 +94,9 @@ export const I18n = {
       usernamePasswordRequired: 'Username and password required',
       loginFailed: 'Login failed',
       initError: 'Initialization error',
+      accessDenied: 'Access Denied',
+      noAccessToAllTasks: 'Your role does not have access to all tasks.',
+      noAccessToAllOrders: 'Your role does not have access to all orders.',
       
       // Mobile menu
       menu: 'Menu',
@@ -140,6 +145,8 @@ export const I18n = {
       close: 'סגור',
       open: 'פתח',
       view: 'צפה',
+      yes: 'כן',
+      no: 'לא',
       
       // Common labels
       title: 'כותרת',
@@ -192,6 +199,9 @@ export const I18n = {
       usernamePasswordRequired: 'שם משתמש וסיסמה נדרשים',
       loginFailed: 'התחברות נכשלה',
       initError: 'שגיאת אתחול',
+      accessDenied: 'גישה נדחתה',
+      noAccessToAllTasks: 'לתפקיד שלך אין גישה לכל המשימות.',
+      noAccessToAllOrders: 'לתפקיד שלך אין גישה לכל ההזמנות.',
       
       // Mobile menu
       menu: 'תפריט',
