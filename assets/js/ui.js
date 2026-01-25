@@ -299,7 +299,7 @@ export const UI = {
       // Orders menu items
       { path: '/my-orders', label: I18n.t('myOrders'), roles: ['admin', 'mini_admin', 'employee', 'orders_manager'] },
       { path: '/all-orders', label: I18n.t('allOrders'), roles: ['admin', 'mini_admin', 'orders_manager'] },
-      { path: '/users', label: I18n.t('users'), roles: ['admin', 'mini_admin'] }
+      { path: '/users', label: I18n.t('users'), roles: ['admin'] }
     ];
 
     items.forEach(it => {
@@ -380,7 +380,7 @@ export const UI = {
       // Orders menu items
       { path: '/my-orders', label: I18n.t('myOrders'), roles: ['admin', 'mini_admin', 'employee', 'orders_manager'] },
       { path: '/all-orders', label: I18n.t('allOrders'), roles: ['admin', 'mini_admin', 'orders_manager'] },
-      { path: '/users', label: I18n.t('users'), roles: ['admin', 'mini_admin'] }
+      { path: '/users', label: I18n.t('users'), roles: ['admin'] }
     ];
 
     items.forEach(it => {
@@ -474,60 +474,77 @@ export const UI = {
     const card = document.createElement('div');
     card.className = 'card';
 
+    const me = Auth.currentUser();
+    
+    // Helper function to get greeting based on time of day
+    const getGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) return I18n.t('goodMorning');
+      if (hour < 18) return I18n.t('goodAfternoon');
+      return I18n.t('goodEvening');
+    };
+
     const header = document.createElement('div');
     header.className = 'header';
     const headerTitle = document.createElement('div');
     headerTitle.className = 'h-title';
-    headerTitle.textContent = I18n.t('dashboard');
+    headerTitle.textContent = `${getGreeting()}, ${me.displayName}`;
     header.appendChild(headerTitle);
     card.appendChild(header);
 
-    // Summary
+    // Summary - hide task count for orders_manager
     const summary = document.createElement('div');
     summary.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 mb-6';
-    const openTasksCount = Storage.tasks().filter(t => t.status !== 'done').length;
     const ordersCount = Storage.orders().length;
-
-    summary.innerHTML = `
-      <div class="accent-bg">
-        <strong>${I18n.t('openTasks')}</strong>
-        <div class="text-2xl font-bold mt-1">${openTasksCount}</div>
-      </div>
-      <div class="accent-bg">
-        <strong>${I18n.t('orders')}</strong>
-        <div class="text-2xl font-bold mt-1">${ordersCount}</div>
-      </div>
-    `;
+    
+    if (me.role !== 'orders_manager') {
+      const openTasksCount = Storage.tasks().filter(t => t.status !== 'done' && t.status !== 'completed').length;
+      summary.innerHTML = `
+        <div class="accent-bg">
+          <strong>${I18n.t('openTasks')}</strong>
+          <div class="text-2xl font-bold mt-1">${openTasksCount}</div>
+        </div>
+        <div class="accent-bg">
+          <strong>${I18n.t('orders')}</strong>
+          <div class="text-2xl font-bold mt-1">${ordersCount}</div>
+        </div>
+      `;
+    } else {
+      // Orders manager only sees orders
+      summary.innerHTML = `
+        <div class="accent-bg">
+          <strong>${I18n.t('orders')}</strong>
+          <div class="text-2xl font-bold mt-1">${ordersCount}</div>
+        </div>
+      `;
+    }
     card.appendChild(summary);
 
     // Recent tasks and orders
     const grid = document.createElement('div');
     grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
 
-    // Tasks (filtered by role)
-    const tasksCol = document.createElement('div');
-    const tasksHeader = document.createElement('h3');
-    tasksHeader.className = 'font-semibold mb-3';
-    tasksHeader.textContent = I18n.t('recentTasks');
-    tasksCol.appendChild(tasksHeader);
+    // Tasks (filtered by role) - orders_manager doesn't see tasks
+    if (me.role !== 'orders_manager') {
+      const tasksCol = document.createElement('div');
+      const tasksHeader = document.createElement('h3');
+      tasksHeader.className = 'font-semibold mb-3';
+      tasksHeader.textContent = I18n.t('recentTasks');
+      tasksCol.appendChild(tasksHeader);
 
-    const me = Auth.currentUser();
-    let allTasks = Storage.tasks();
-    
-    // Filter tasks based on role
-    if (me.role === 'employee') {
-      // Employees only see tasks assigned to them
-      allTasks = allTasks.filter(t => t.assignees && t.assignees.includes(me.username));
-    } else if (me.role === 'orders_manager') {
-      // Orders managers don't see tasks
-      allTasks = [];
-    }
-    // admin and mini_admin see all tasks
-    
-    const tasks = allTasks.slice().reverse().slice(0, 5);
-    
-    if (tasks.length === 0) {
-      const noTasks = document.createElement('div');
+      let allTasks = Storage.tasks();
+      
+      // Filter tasks based on role
+      if (me.role === 'employee') {
+        // Employees only see tasks assigned to them
+        allTasks = allTasks.filter(t => t.assignees && t.assignees.includes(me.username));
+      }
+      // admin and mini_admin see all tasks
+      
+      const tasks = allTasks.slice().reverse().slice(0, 5);
+      
+      if (tasks.length === 0) {
+        const noTasks = document.createElement('div');
       noTasks.className = 'small';
       noTasks.textContent = 'No tasks';
       tasksCol.appendChild(noTasks);
@@ -548,6 +565,9 @@ export const UI = {
         tasksCol.appendChild(el);
       });
     }
+    
+    grid.appendChild(tasksCol);
+  }
 
     // Orders
     const ordersCol = document.createElement('div');
@@ -575,6 +595,7 @@ export const UI = {
       orders.forEach(o => {
         const el = document.createElement('div');
         el.className = 'task-card';
+        // Only show urgent badge if order is urgent
         const urgentBadge = o.isUrgent ? `<span class="badge badge-urgent">🔥 ${I18n.t('urgent')}</span>` : '';
         el.innerHTML = `
           <div class="flex-1">
@@ -590,7 +611,6 @@ export const UI = {
       });
     }
 
-    grid.appendChild(tasksCol);
     grid.appendChild(ordersCol);
     card.appendChild(grid);
     container.appendChild(card);
@@ -1373,10 +1393,52 @@ export const UI = {
     header.appendChild(headerTitle);
     card.appendChild(header);
 
-    const content = document.createElement('div');
-    content.className = 'small';
-    content.textContent = 'Project management (to be completed)';
-    card.appendChild(content);
+    // Display all projects
+    const projects = Storage.projects();
+    
+    if (projects.length === 0) {
+      const noProjects = document.createElement('div');
+      noProjects.className = 'small';
+      noProjects.textContent = I18n.t('noProjects') || 'No projects';
+      card.appendChild(noProjects);
+    } else {
+      const projectList = document.createElement('div');
+      projectList.className = 'flex flex-col gap-3';
+      
+      projects.forEach(p => {
+        const projectCard = document.createElement('div');
+        projectCard.className = 'accent-bg';
+        projectCard.style.cursor = 'pointer';
+        
+        const projectTasks = Storage.tasks().filter(t => t.projectId === p.id);
+        const completedTasks = projectTasks.filter(t => t.status === 'completed' || t.status === 'done').length;
+        
+        projectCard.innerHTML = `
+          <div class="flex justify-between items-center">
+            <div>
+              <strong style="font-size: 1.1rem;">📁 ${p.name}</strong>
+              <div class="small mt-1">${I18n.t('tasks')}: ${projectTasks.length} (${completedTasks} ${I18n.t('completed')})</div>
+            </div>
+            <button class="btn secondary" data-project-id="${p.id}">${I18n.t('view')}</button>
+          </div>
+        `;
+        
+        projectList.appendChild(projectCard);
+      });
+      
+      card.appendChild(projectList);
+      
+      // Add event listeners
+      card.querySelectorAll('button[data-project-id]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const projectId = btn.getAttribute('data-project-id');
+          // For now, just navigate to all tasks filtered by this project
+          Router.navigate('/all-tasks');
+        });
+      });
+    }
+    
     container.appendChild(card);
   },
 
@@ -1384,9 +1446,9 @@ export const UI = {
     container.innerHTML = '';
     const me = Auth.currentUser();
     
-    // Only admin and mini_admin can access
-    if (!['admin', 'mini_admin'].includes(me.role)) {
-      container.innerHTML = '<div class="card"><div class="h-title">Access Denied</div></div>';
+    // Only admin can manage users (not mini_admin)
+    if (me.role !== 'admin') {
+      container.innerHTML = '<div class="card"><div class="h-title">' + I18n.t('accessDenied') + '</div></div>';
       return;
     }
     

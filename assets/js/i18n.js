@@ -98,10 +98,17 @@ export const I18n = {
       taskHistory: 'Task History',
       addPhoto: 'Add Photo',
       taskReadOnly: 'Task details are read-only for employees',
+      createUnassignedTask: 'Just create the task for now',
+      allFieldsRequired: 'All fields must be filled',
       
       // Dashboard
+      goodMorning: 'Good morning',
+      goodAfternoon: 'Good afternoon',
+      goodEvening: 'Good evening',
+      todaysTasks: 'Here are today\'s tasks',
       recentOrders: 'Recent orders',
       noOrders: 'No orders',
+      calendar: 'Calendar',
       
       // Messages
       notFound: 'Not found',
@@ -219,10 +226,17 @@ export const I18n = {
       taskHistory: 'היסטוריית משימה',
       addPhoto: 'הוסף תמונה',
       taskReadOnly: 'פרטי המשימה הם לקריאה בלבד עבור עובדים',
+      createUnassignedTask: 'רק צור את המשימה לעכשיו',
+      allFieldsRequired: 'כל השדות חייבים להיות מלאים',
       
       // Dashboard
+      goodMorning: 'בוקר טוב',
+      goodAfternoon: 'צהריים טובים',
+      goodEvening: 'ערב טוב',
+      todaysTasks: 'הנה המשימות של היום',
       recentOrders: 'בקשות אחרונות',
       noOrders: 'אין בקשות',
+      calendar: 'לוח שנה',
       
       // Messages
       notFound: 'לא נמצא',
