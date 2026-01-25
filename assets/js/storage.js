@@ -49,14 +49,66 @@ export const Storage = {
           createdAt: now,
         });
       }
-      // Example project + task seeds (minimal)
-      const p1 = {id: Utils.uuid(), name: 'פרויקט הדגמה', start: now, end:null, createdAt:now};
-      this._db.projects.push(p1);
-      const t1 = {
-        id: Utils.uuid(), projectId: p1.id, title: 'משימה ראשונית', description:'תיאור משימה', images:[], plannedHours:2,
-        assignees:['daniel'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:2, at:now}], createdAt:now
+      // Example projects with tasks
+      const herzliya = {id: Utils.uuid(), name: 'Herzliya', start: now, end:null, createdAt:now};
+      this._db.projects.push(herzliya);
+      
+      const rtg = {id: Utils.uuid(), name: 'RTG', start: now, end:null, createdAt:now};
+      this._db.projects.push(rtg);
+      
+      // Herzliya project tasks
+      const h1 = {
+        id: Utils.uuid(), projectId: herzliya.id, title: 'Modify the LEDs', description:'Modify lighting system', images:[], plannedHours:4,
+        assignees:['daniel'], status:'in progress', timeLog: [{type:'plan', by:'system', hours:4, at:now}], createdAt:now
       };
-      this._db.tasks.push(t1);
+      this._db.tasks.push(h1);
+      
+      const h2 = {
+        id: Utils.uuid(), projectId: herzliya.id, title: 'Reorganize materials in shelves', description:'Organize storage', images:[], plannedHours:3,
+        assignees:['daniel'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:3, at:now}], createdAt:now
+      };
+      this._db.tasks.push(h2);
+      
+      // RTG project tasks
+      const r1 = {
+        id: Utils.uuid(), projectId: rtg.id, title: 'Make a hole for ventilation', description:'Drilling work', images:[], plannedHours:2,
+        assignees:['sasha'], status:'in progress', timeLog: [{type:'plan', by:'system', hours:2, at:now}], createdAt:now
+      };
+      this._db.tasks.push(r1);
+      
+      const r2 = {
+        id: Utils.uuid(), projectId: rtg.id, title: 'Install communication boxes', description:'Install network equipment', images:[], plannedHours:5,
+        assignees:['daniel', 'sasha'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:5, at:now}], createdAt:now
+      };
+      this._db.tasks.push(r2);
+      
+      const r3 = {
+        id: Utils.uuid(), projectId: rtg.id, title: 'Connect communication boxes to electrical panels', description:'Electrical wiring', images:[], plannedHours:4,
+        assignees:['mathy'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:4, at:now}], createdAt:now
+      };
+      this._db.tasks.push(r3);
+      
+      const r4 = {
+        id: Utils.uuid(), projectId: rtg.id, title: 'Install the LEDs', description:'LED installation', images:[], plannedHours:3,
+        assignees:['mathy'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:3, at:now}], createdAt:now
+      };
+      this._db.tasks.push(r4);
+      
+      const r5 = {
+        id: Utils.uuid(), projectId: rtg.id, title: 'Install the generator', description:'Generator installation', images:[], plannedHours:6,
+        assignees:['avri'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:6, at:now}], createdAt:now
+      };
+      this._db.tasks.push(r5);
+      
+      // Sample orders
+      const o1 = {id: Utils.uuid(), title: 'M5X15 screws', description:'Order screws for project', date: now, status: 'Requested', requestedBy: 'daniel'};
+      this._db.orders.push(o1);
+      
+      const o2 = {id: Utils.uuid(), title: 'Doors for RTG', description:'Custom doors needed', date: now, status: 'Requested', requestedBy: 'sasha'};
+      this._db.orders.push(o2);
+      
+      const o3 = {id: Utils.uuid(), title: 'Chevrolet Savana for vacation', description:'Vehicle rental', date: now, status: 'Requested', requestedBy: 'avri'};
+      this._db.orders.push(o3);
 
       this.persist();
     }
@@ -79,6 +131,8 @@ export const Storage = {
   findUserById(id){ return this._db.users.find(u=>u.id===id) },
 
   addUser(user){ this._db.users.push(user); this.persist(); return user; },
+  updateUser(id,attrs){ const u = this._db.users.find(x=>x.id===id); if(u) Object.assign(u,attrs); this.persist(); return u; },
+  deleteUser(id){ this._db.users = this._db.users.filter(x=>x.id!==id); this.persist(); },
 
   addProject(p){ this._db.projects.push(p); this.persist(); return p; },
   updateProject(id,attrs){ const p = this._db.projects.find(x=>x.id===id); Object.assign(p,attrs); this.persist(); return p; },

@@ -1,0 +1,25 @@
+# Node modules (if npm is used)
+node_modules/
+
+# Build artifacts
+dist/
+build/
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store
+
+# Backup files
+*_backup.js
+*_old.js
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local

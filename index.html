@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -15,14 +15,63 @@
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="icon" href="assets/logo.png" type="image/png">
 
-  <meta name="description" content="B Rimon Management - gestion des projets, tâches et commandes (frontend, stockage local)" />
+  <meta name="description" content="B Rimon Management - Project, task and order management system" />
 </head>
 <body class="bg-gray-50">
   <!-- Global loader (shown while app boots) -->
   <div id="global-loader" class="fixed inset-0 z-50 flex items-center justify-center bg-white">
-    <!-- inline SVG loader (uses currentColor) -->
-    <div id="loader-svg" style="color: #b3281c; width:160px; height:160px;">
-      <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg"><style>.pl1123__ring { animation: ringA 2s linear infinite; } .pl1123__ring--a { stroke: currentColor; } .pl1123__ring--b { animation-name: ringB; stroke: currentColor; } .pl1123__ring--c { animation-name: ringC; stroke: currentColor; } .pl1123__ring--d { animation-name: ringD; stroke: currentColor; } @keyframes ringA { from,4%{stroke-dasharray:0 660;stroke-width:20;stroke-dashoffset:-330;}12%{stroke-dasharray:60 600;stroke-width:30;stroke-dashoffset:-335;}32%{stroke-dasharray:60 600;stroke-width:30;stroke-dashoffset:-595;}40%,54%{stroke-dasharray:0 660;stroke-width:20;stroke-dashoffset:-660;}62%{stroke-dasharray:60 600;stroke-width:30;stroke-dashoffset:-665;}82%{stroke-dasharray:60 600;stroke-width:30;stroke-dashoffset:-925;}90%,to{stroke-dasharray:0 660;stroke-width:20;stroke-dashoffset:-990;}} @keyframes ringB { from,12%{stroke-dasharray:0 220;stroke-width:20;stroke-dashoffset:-110;}20%{stroke-dasharray:20 200;stroke-width:30;stroke-dashoffset:-115;}40%{stroke-dasharray:20 200;stroke-width:30;stroke-dashoffset:-195;}48%,62%{stroke-dasharray:0 220;stroke-width:20;stroke-dashoffset:-220;}70%{stroke-dasharray:20 200;stroke-width:30;stroke-dashoffset:-225;}90%{stroke-dasharray:20 200;stroke-width:30;stroke-dashoffset:-305;}98%,to{stroke-dasharray:0 220;stroke-width:20;stroke-dashoffset:-330;}} @keyframes ringC { from{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:0;}8%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-5;}28%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-175;}36%,58%{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:-220;}66%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-225;}86%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-395;}94%,to{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:-440;}} @keyframes ringD { from,8%{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:0;}16%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-5;}36%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-175;}44%,50%{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:-220;}58%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-225;}78%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-395;}86%,to{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:-440;}}</style><circle class="pl1123__ring pl1123__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"/><circle class="pl1123__ring pl1123__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"/><circle class="pl1123__ring pl1123__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"/><circle class="pl1123__ring pl1123__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"/></svg>
+    <!-- Inline SVG loader (uses currentColor) -->
+    <div id="loader-svg" style="color: var(--accent); width:160px; height:160px;">
+      <!-- Jump loader SVG -->
+      <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          .pl1123__ring { animation: ringA 2s linear infinite; }
+          .pl1123__ring--a { stroke: currentColor; }
+          .pl1123__ring--b { animation-name: ringB; stroke: currentColor; }
+          .pl1123__ring--c { animation-name: ringC; stroke: currentColor; }
+          .pl1123__ring--d { animation-name: ringD; stroke: currentColor; }
+          @keyframes ringA {
+            from,4%{stroke-dasharray:0 660;stroke-width:20;stroke-dashoffset:-330;}
+            12%{stroke-dasharray:60 600;stroke-width:30;stroke-dashoffset:-335;}
+            32%{stroke-dasharray:60 600;stroke-width:30;stroke-dashoffset:-595;}
+            40%,54%{stroke-dasharray:0 660;stroke-width:20;stroke-dashoffset:-660;}
+            62%{stroke-dasharray:60 600;stroke-width:30;stroke-dashoffset:-665;}
+            82%{stroke-dasharray:60 600;stroke-width:30;stroke-dashoffset:-925;}
+            90%,to{stroke-dasharray:0 660;stroke-width:20;stroke-dashoffset:-990;}
+          }
+          @keyframes ringB {
+            from,12%{stroke-dasharray:0 220;stroke-width:20;stroke-dashoffset:-110;}
+            20%{stroke-dasharray:20 200;stroke-width:30;stroke-dashoffset:-115;}
+            40%{stroke-dasharray:20 200;stroke-width:30;stroke-dashoffset:-195;}
+            48%,62%{stroke-dasharray:0 220;stroke-width:20;stroke-dashoffset:-220;}
+            70%{stroke-dasharray:20 200;stroke-width:30;stroke-dashoffset:-225;}
+            90%{stroke-dasharray:20 200;stroke-width:30;stroke-dashoffset:-305;}
+            98%,to{stroke-dasharray:0 220;stroke-width:20;stroke-dashoffset:-330;}
+          }
+          @keyframes ringC {
+            from{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:0;}
+            8%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-5;}
+            28%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-175;}
+            36%,58%{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:-220;}
+            66%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-225;}
+            86%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-395;}
+            94%,to{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:-440;}
+          }
+          @keyframes ringD {
+            from,8%{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:0;}
+            16%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-5;}
+            36%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-175;}
+            44%,50%{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:-220;}
+            58%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-225;}
+            78%{stroke-dasharray:40 400;stroke-width:30;stroke-dashoffset:-395;}
+            86%,to{stroke-dasharray:0 440;stroke-width:20;stroke-dashoffset:-440;}
+          }
+        </style>
+        <circle class="pl1123__ring pl1123__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"/>
+        <circle class="pl1123__ring pl1123__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"/>
+        <circle class="pl1123__ring pl1123__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"/>
+        <circle class="pl1123__ring pl1123__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"/>
+      </svg>
     </div>
   </div>
 
@@ -35,3 +84,4 @@
   <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>
+

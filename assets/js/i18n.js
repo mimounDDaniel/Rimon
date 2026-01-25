@@ -1,76 +1,234 @@
-// i18n: Hebrew & English strings minimal set
+// i18n: Internationalization module with English as source language
 export const I18n = {
-  _lang: 'he',
+  _lang: 'en',
+  _listeners: [],
   _catalog: {
-    he: {
-      appName: 'B Rimon Management',
-      login: 'התחברות',
-      username: 'שם משתמש',
-      password: 'סיסמה',
-      logout: 'התנתק',
-      dashboard: 'לוח בקרה',
-      tasks: 'משימות',
-      projects: 'פרויקטים',
-      orders: 'הזמנות',
-      users: 'משתמשים',
-      addHours: 'הוספת שעות',
-      planned: 'משוערת',
-      status: 'מצב',
-      filters: 'מסננים',
-      exportCSV: 'ייצא CSV',
-      exportPDF: 'ייצא PDF',
-      createOrder: 'בקשת חומר',
-      accept: 'אשר',
-      refuse: 'דחה',
-    },
     en: {
+      // Core app
       appName: 'B Rimon Management',
+      appTagline: 'Power in Motion',
+      
+      // Authentication
       login: 'Login',
       username: 'Username',
       password: 'Password',
       logout: 'Logout',
+      seedPasswordNote: 'Seed password by default',
+      
+      // Navigation
       dashboard: 'Dashboard',
       tasks: 'Tasks',
       projects: 'Projects',
       orders: 'Orders',
       users: 'Users',
+      settings: 'Settings',
+      profile: 'Profile',
+      
+      // Actions
       addHours: 'Add hours',
+      create: 'Create',
+      save: 'Save',
+      cancel: 'Cancel',
+      edit: 'Edit',
+      delete: 'Delete',
+      accept: 'Accept',
+      refuse: 'Refuse',
+      close: 'Close',
+      open: 'Open',
+      view: 'View',
+      
+      // Common labels
+      title: 'Title',
+      description: 'Description',
       planned: 'Planned',
       status: 'Status',
       filters: 'Filters',
+      date: 'Date',
+      assignees: 'Assignees',
+      
+      // Export
       exportCSV: 'Export CSV',
       exportPDF: 'Export PDF',
+      
+      // Orders
       createOrder: 'Create Order Request',
-      accept: 'Accept',
-      refuse: 'Refuse',
+      orderRequest: 'Order Request',
+      requested: 'Requested',
+      requestedBy: 'Requested by',
+      
+      // Tasks
+      createTask: 'Create Task',
+      newTask: '+ New',
+      taskTitle: 'Task Title',
+      taskDescription: 'Task Description',
+      plannedHours: 'Planned hours',
+      openTasks: 'Open tasks',
+      recentTasks: 'Recent tasks',
+      
+      // Dashboard
+      recentOrders: 'Recent orders',
+      noOrders: 'No orders',
+      
+      // Messages
+      notFound: 'Not found',
+      required: 'Required',
+      titleRequired: 'Title required',
+      usernamePasswordRequired: 'Username and password required',
+      loginFailed: 'Login failed',
+      initError: 'Initialization error',
+      
+      // Mobile menu
+      menu: 'Menu',
+      closeMenu: 'Close menu',
+      
+      // Language
+      language: 'Language',
+      selectLanguage: 'Select language',
+      english: 'English',
+      hebrew: 'עברית'
+    },
+    he: {
+      // Core app
+      appName: 'B Rimon Management',
+      appTagline: 'כוח בתנועה',
+      
+      // Authentication
+      login: 'התחברות',
+      username: 'שם משתמש',
+      password: 'סיסמה',
+      logout: 'התנתק',
+      seedPasswordNote: 'סיסמת זרע כברירת מחדל',
+      
+      // Navigation
+      dashboard: 'לוח בקרה',
+      tasks: 'משימות',
+      projects: 'פרויקטים',
+      orders: 'הזמנות',
+      users: 'משתמשים',
+      settings: 'הגדרות',
+      profile: 'פרופיל',
+      
+      // Actions
+      addHours: 'הוספת שעות',
+      create: 'צור',
+      save: 'שמור',
+      cancel: 'ביטול',
+      edit: 'ערוך',
+      delete: 'מחק',
+      accept: 'אשר',
+      refuse: 'דחה',
+      close: 'סגור',
+      open: 'פתח',
+      view: 'צפה',
+      
+      // Common labels
+      title: 'כותרת',
+      description: 'תיאור',
+      planned: 'משוערת',
+      status: 'מצב',
+      filters: 'מסננים',
+      date: 'תאריך',
+      assignees: 'משוייכים',
+      
+      // Export
+      exportCSV: 'ייצא CSV',
+      exportPDF: 'ייצא PDF',
+      
+      // Orders
+      createOrder: 'בקשת חומר',
+      orderRequest: 'בקשת הזמנה',
+      requested: 'נתבקש',
+      requestedBy: 'התבקש על ידי',
+      
+      // Tasks
+      createTask: 'צור משימה',
+      newTask: '+ חדש',
+      taskTitle: 'כותרת המשימה',
+      taskDescription: 'תיאור המשימה',
+      plannedHours: 'שעות משוערות',
+      openTasks: 'משימות פתוחות',
+      recentTasks: 'משימות אחרונות',
+      
+      // Dashboard
+      recentOrders: 'בקשות אחרונות',
+      noOrders: 'אין בקשות',
+      
+      // Messages
+      notFound: 'לא נמצא',
+      required: 'נדרש',
+      titleRequired: 'כותרת נדרשת',
+      usernamePasswordRequired: 'שם משתמש וסיסמה נדרשים',
+      loginFailed: 'התחברות נכשלה',
+      initError: 'שגיאת אתחול',
+      
+      // Mobile menu
+      menu: 'תפריט',
+      closeMenu: 'סגור תפריט',
+      
+      // Language
+      language: 'שפה',
+      selectLanguage: 'בחר שפה',
+      english: 'English',
+      hebrew: 'עברית'
     }
   },
 
-  init({defaultLang='he'}){
+  init({defaultLang = 'en'} = {}) {
     this._lang = defaultLang;
     this.applyDir();
+    return Promise.resolve();
   },
 
-  t(key){
+  t(key) {
     return (this._catalog[this._lang] && this._catalog[this._lang][key]) || key;
   },
 
-  set(lang){
+  set(lang) {
+    if (this._lang === lang) return;
     this._lang = lang;
     this.applyDir();
+    this._emit('i18n:change', lang);
   },
 
-  lang(){ return this._lang; },
+  lang() {
+    return this._lang;
+  },
 
-  applyDir(){
+  applyDir() {
     const dir = this._lang === 'he' ? 'rtl' : 'ltr';
     document.documentElement.lang = this._lang;
     document.documentElement.dir = dir;
-    // Add classes to root
-    const root = document.querySelector('#app');
-    if(root){
-      root.classList.toggle('rtl', dir==='rtl');
-      root.classList.toggle('ltr', dir==='ltr');
+    
+    // Add/remove body classes for RTL support
+    if (dir === 'rtl') {
+      document.body.classList.add('is-rtl');
+      document.body.classList.remove('is-ltr');
+    } else {
+      document.body.classList.add('is-ltr');
+      document.body.classList.remove('is-rtl');
     }
+    
+    // Also toggle on app root if it exists
+    const root = document.querySelector('#app');
+    if (root) {
+      root.classList.toggle('rtl', dir === 'rtl');
+      root.classList.toggle('ltr', dir === 'ltr');
+    }
+  },
+
+  on(event, callback) {
+    this._listeners.push({ event, callback });
+  },
+
+  off(event, callback) {
+    this._listeners = this._listeners.filter(
+      l => !(l.event === event && l.callback === callback)
+    );
+  },
+
+  _emit(event, data) {
+    this._listeners
+      .filter(l => l.event === event)
+      .forEach(l => l.callback(data));
   }
 };
