@@ -299,7 +299,7 @@ export const UI = {
       // Orders menu items
       { path: '/my-orders', label: I18n.t('myOrders'), roles: ['admin', 'mini_admin', 'employee', 'orders_manager'] },
       { path: '/all-orders', label: I18n.t('allOrders'), roles: ['admin', 'mini_admin', 'orders_manager'] },
-      { path: '/users', label: I18n.t('users'), roles: ['admin', 'mini_admin'] }
+      { path: '/users', label: I18n.t('users'), roles: ['admin'] }
     ];
 
     items.forEach(it => {
@@ -380,7 +380,7 @@ export const UI = {
       // Orders menu items
       { path: '/my-orders', label: I18n.t('myOrders'), roles: ['admin', 'mini_admin', 'employee', 'orders_manager'] },
       { path: '/all-orders', label: I18n.t('allOrders'), roles: ['admin', 'mini_admin', 'orders_manager'] },
-      { path: '/users', label: I18n.t('users'), roles: ['admin', 'mini_admin'] }
+      { path: '/users', label: I18n.t('users'), roles: ['admin'] }
     ];
 
     items.forEach(it => {
@@ -474,60 +474,77 @@ export const UI = {
     const card = document.createElement('div');
     card.className = 'card';
 
+    const me = Auth.currentUser();
+    
+    // Helper function to get greeting based on time of day
+    const getGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) return I18n.t('goodMorning');
+      if (hour < 18) return I18n.t('goodAfternoon');
+      return I18n.t('goodEvening');
+    };
+
     const header = document.createElement('div');
     header.className = 'header';
     const headerTitle = document.createElement('div');
     headerTitle.className = 'h-title';
-    headerTitle.textContent = I18n.t('dashboard');
+    headerTitle.textContent = `${getGreeting()}, ${me.displayName}`;
     header.appendChild(headerTitle);
     card.appendChild(header);
 
-    // Summary
+    // Summary - hide task count for orders_manager
     const summary = document.createElement('div');
     summary.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 mb-6';
-    const openTasksCount = Storage.tasks().filter(t => t.status !== 'done').length;
     const ordersCount = Storage.orders().length;
-
-    summary.innerHTML = `
-      <div class="accent-bg">
-        <strong>${I18n.t('openTasks')}</strong>
-        <div class="text-2xl font-bold mt-1">${openTasksCount}</div>
-      </div>
-      <div class="accent-bg">
-        <strong>${I18n.t('orders')}</strong>
-        <div class="text-2xl font-bold mt-1">${ordersCount}</div>
-      </div>
-    `;
+    
+    if (me.role !== 'orders_manager') {
+      const openTasksCount = Storage.tasks().filter(t => t.status !== 'done' && t.status !== 'completed').length;
+      summary.innerHTML = `
+        <div class="accent-bg">
+          <strong>${I18n.t('openTasks')}</strong>
+          <div class="text-2xl font-bold mt-1">${openTasksCount}</div>
+        </div>
+        <div class="accent-bg">
+          <strong>${I18n.t('orders')}</strong>
+          <div class="text-2xl font-bold mt-1">${ordersCount}</div>
+        </div>
+      `;
+    } else {
+      // Orders manager only sees orders
+      summary.innerHTML = `
+        <div class="accent-bg">
+          <strong>${I18n.t('orders')}</strong>
+          <div class="text-2xl font-bold mt-1">${ordersCount}</div>
+        </div>
+      `;
+    }
     card.appendChild(summary);
 
     // Recent tasks and orders
     const grid = document.createElement('div');
     grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
 
-    // Tasks (filtered by role)
-    const tasksCol = document.createElement('div');
-    const tasksHeader = document.createElement('h3');
-    tasksHeader.className = 'font-semibold mb-3';
-    tasksHeader.textContent = I18n.t('recentTasks');
-    tasksCol.appendChild(tasksHeader);
+    // Tasks (filtered by role) - orders_manager doesn't see tasks
+    if (me.role !== 'orders_manager') {
+      const tasksCol = document.createElement('div');
+      const tasksHeader = document.createElement('h3');
+      tasksHeader.className = 'font-semibold mb-3';
+      tasksHeader.textContent = I18n.t('recentTasks');
+      tasksCol.appendChild(tasksHeader);
 
-    const me = Auth.currentUser();
-    let allTasks = Storage.tasks();
-    
-    // Filter tasks based on role
-    if (me.role === 'employee') {
-      // Employees only see tasks assigned to them
-      allTasks = allTasks.filter(t => t.assignees && t.assignees.includes(me.username));
-    } else if (me.role === 'orders_manager') {
-      // Orders managers don't see tasks
-      allTasks = [];
-    }
-    // admin and mini_admin see all tasks
-    
-    const tasks = allTasks.slice().reverse().slice(0, 5);
-    
-    if (tasks.length === 0) {
-      const noTasks = document.createElement('div');
+      let allTasks = Storage.tasks();
+      
+      // Filter tasks based on role
+      if (me.role === 'employee') {
+        // Employees only see tasks assigned to them
+        allTasks = allTasks.filter(t => t.assignees && t.assignees.includes(me.username));
+      }
+      // admin and mini_admin see all tasks
+      
+      const tasks = allTasks.slice().reverse().slice(0, 5);
+      
+      if (tasks.length === 0) {
+        const noTasks = document.createElement('div');
       noTasks.className = 'small';
       noTasks.textContent = 'No tasks';
       tasksCol.appendChild(noTasks);
@@ -548,6 +565,9 @@ export const UI = {
         tasksCol.appendChild(el);
       });
     }
+    
+    grid.appendChild(tasksCol);
+  }
 
     // Orders
     const ordersCol = document.createElement('div');
@@ -575,6 +595,7 @@ export const UI = {
       orders.forEach(o => {
         const el = document.createElement('div');
         el.className = 'task-card';
+        // Only show urgent badge if order is urgent
         const urgentBadge = o.isUrgent ? `<span class="badge badge-urgent">🔥 ${I18n.t('urgent')}</span>` : '';
         el.innerHTML = `
           <div class="flex-1">
@@ -590,7 +611,6 @@ export const UI = {
       });
     }
 
-    grid.appendChild(tasksCol);
     grid.appendChild(ordersCol);
     card.appendChild(grid);
     container.appendChild(card);
@@ -782,15 +802,23 @@ export const UI = {
     const me = Auth.currentUser();
     const task = taskId ? Storage.tasks().find(t => t.id === taskId) : null;
     const isEmployee = me.role === 'employee';
-    const canEdit = !isEmployee || !task; // Employees can't edit existing tasks
+    
+    // If employee viewing existing task, show read-only card view
+    if (task && isEmployee) {
+      this._openTaskReadOnlyView(task);
+      return;
+    }
     
     const modalBg = document.createElement('div');
     modalBg.className = 'modal-backdrop';
     modalBg.setAttribute('role', 'dialog');
     modalBg.setAttribute('aria-modal', 'true');
+    
+    // Add animation
+    setTimeout(() => modalBg.classList.add('modal-show'), 10);
 
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    modal.className = 'modal modal-animated';
     modal.style.maxWidth = '700px';
     modal.style.maxHeight = '90vh';
     modal.style.overflowY = 'auto';
@@ -805,41 +833,23 @@ export const UI = {
 
     const form = document.createElement('div');
     form.className = 'flex flex-col gap-3';
-    
-    // Show read-only notice for employees
-    if (task && isEmployee) {
-      const notice = document.createElement('div');
-      notice.style.cssText = 'padding: 0.75rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px; margin-bottom: 1rem;';
-      notice.innerHTML = `<small style="color: #92400e;">ℹ️ ${I18n.t('taskReadOnly')}</small>`;
-      form.appendChild(notice);
-    }
 
-    // Project selector (admins only, or when creating)
-    if (!isEmployee || !task) {
-      const projectSelect = document.createElement('select');
-      projectSelect.className = 'input';
-      projectSelect.id = 't-project';
-      projectSelect.disabled = task && isEmployee;
-      const projects = Storage.projects();
-      projectSelect.innerHTML = `<option value="">${I18n.t('selectProject')}</option>` +
-        projects.map(p => `<option value="${p.id}" ${task && task.projectId === p.id ? 'selected' : ''}>${p.name}</option>`).join('');
-      form.appendChild(projectSelect);
-    } else if (task && task.projectId) {
-      const project = Storage.projects().find(p => p.id === task.projectId);
-      if (project) {
-        const projectInfo = document.createElement('div');
-        projectInfo.style.cssText = 'padding: 0.5rem; background: #f3f4f6; border-radius: 4px; color: #764ba2; font-weight: 600;';
-        projectInfo.innerHTML = `📁 ${I18n.t('projectName')}: ${project.name}`;
-        form.appendChild(projectInfo);
-      }
-    }
+    // Project selector
+    const projectSelect = document.createElement('select');
+    projectSelect.className = 'input';
+    projectSelect.id = 't-project';
+    projectSelect.required = true;
+    const projects = Storage.projects();
+    projectSelect.innerHTML = `<option value="">${I18n.t('selectProject')}</option>` +
+      projects.map(p => `<option value="${p.id}" ${task && task.projectId === p.id ? 'selected' : ''}>${p.name}</option>`).join('');
+    form.appendChild(projectSelect);
 
     const titleInput = document.createElement('input');
     titleInput.className = 'input';
     titleInput.id = 't-title';
     titleInput.placeholder = I18n.t('title');
+    titleInput.required = true;
     titleInput.value = task ? task.title : '';
-    titleInput.disabled = task && isEmployee;
     form.appendChild(titleInput);
 
     const descTextarea = document.createElement('textarea');
@@ -847,25 +857,46 @@ export const UI = {
     descTextarea.id = 't-desc';
     descTextarea.placeholder = I18n.t('description');
     descTextarea.rows = 3;
+    descTextarea.required = true;
     descTextarea.textContent = task ? task.description : '';
-    descTextarea.disabled = task && isEmployee;
     form.appendChild(descTextarea);
 
     const hoursInput = document.createElement('input');
     hoursInput.className = 'input';
     hoursInput.id = 't-planned';
     hoursInput.type = 'number';
+    hoursInput.min = '0';
     hoursInput.placeholder = I18n.t('plannedHours');
+    hoursInput.required = true;
     hoursInput.value = task ? task.plannedHours || '' : '';
-    hoursInput.disabled = task && isEmployee;
     form.appendChild(hoursInput);
+    
+    // Checkbox for creating unassigned task (only when creating new task)
+    let createUnassignedCheckbox = null;
+    let assigneeContainer = null;
+    if (!task) {
+      const unassignedDiv = document.createElement('div');
+      unassignedDiv.className = 'flex items-center gap-2';
+      createUnassignedCheckbox = document.createElement('input');
+      createUnassignedCheckbox.type = 'checkbox';
+      createUnassignedCheckbox.id = 't-unassigned';
+      createUnassignedCheckbox.className = 'checkbox';
+      const unassignedLabel = document.createElement('label');
+      unassignedLabel.htmlFor = 't-unassigned';
+      unassignedLabel.textContent = I18n.t('createUnassignedTask');
+      unassignedDiv.appendChild(createUnassignedCheckbox);
+      unassignedDiv.appendChild(unassignedLabel);
+      form.appendChild(unassignedDiv);
+    }
 
+    // Assignee selector
+    assigneeContainer = document.createElement('div');
+    assigneeContainer.id = 't-assignee-container';
     const assigneeSelect = document.createElement('select');
     assigneeSelect.className = 'input';
     assigneeSelect.id = 't-assignees';
     assigneeSelect.multiple = true;
     assigneeSelect.style.height = '80px';
-    assigneeSelect.disabled = task && isEmployee;
     Storage.users().forEach(u => {
       const opt = document.createElement('option');
       opt.value = u.username;
@@ -875,7 +906,15 @@ export const UI = {
       }
       assigneeSelect.appendChild(opt);
     });
-    form.appendChild(assigneeSelect);
+    assigneeContainer.appendChild(assigneeSelect);
+    form.appendChild(assigneeContainer);
+    
+    // Handle checkbox change
+    if (createUnassignedCheckbox) {
+      createUnassignedCheckbox.addEventListener('change', (e) => {
+        assigneeContainer.style.display = e.target.checked ? 'none' : 'block';
+      });
+    }
     
     // Status selector (employees can change status)
     if (task) {
@@ -955,27 +994,40 @@ export const UI = {
       const title = titleInput.value.trim();
       const desc = descTextarea.value.trim();
       const planned = Number(hoursInput.value) || 0;
-      const assignees = Array.from(assigneeSelect.selectedOptions).map(o => o.value);
-      const projectId = document.getElementById('t-project')?.value || (task ? task.projectId : null);
+      const projectId = document.getElementById('t-project')?.value;
       const status = document.getElementById('t-status')?.value || 'unassigned';
       const commentText = document.getElementById('t-comment')?.value.trim();
+      const createUnassigned = document.getElementById('t-unassigned')?.checked || false;
+      
+      // Get assignees only if not creating unassigned task
+      let assignees = [];
+      if (!createUnassigned || task) {
+        assignees = Array.from(assigneeSelect.selectedOptions).map(o => o.value);
+      }
 
-      if (!task && !title) {
-        alert(I18n.t('titleRequired'));
-        return;
+      // Validation for new tasks
+      if (!task) {
+        const missingFields = [];
+        if (!projectId) missingFields.push(I18n.t('projectName'));
+        if (!title) missingFields.push(I18n.t('title'));
+        if (!desc) missingFields.push(I18n.t('description'));
+        if (!planned || planned <= 0) missingFields.push(I18n.t('plannedHours'));
+        
+        if (missingFields.length > 0) {
+          alert(`${I18n.t('allFieldsRequired')}: ${missingFields.join(', ')}`);
+          return;
+        }
       }
 
       if (task) {
         const updates = {};
         
-        // Admins can update everything
-        if (!isEmployee) {
-          updates.title = title;
-          updates.description = desc;
-          updates.plannedHours = planned;
-          updates.assignees = assignees;
-          updates.projectId = projectId;
-        }
+        // Admins and mini_admins can update everything
+        updates.title = title;
+        updates.description = desc;
+        updates.plannedHours = planned;
+        updates.assignees = assignees;
+        updates.projectId = projectId || task.projectId;
         
         // Everyone can update status
         if (status !== task.status) {
@@ -984,7 +1036,7 @@ export const UI = {
           if (!task.comments) task.comments = [];
           updates.comments = [...task.comments, {
             by: me.username,
-            text: `${I18n.t('statusChange')}: ${I18n.t(task.status.replace(' ', ''))} → ${I18n.t(status.replace(' ', ''))}`,
+            text: `${I18n.t('statusChange')}: ${I18n.t(task.status.replace(/\s+/g, ''))} → ${I18n.t(status.replace(/\s+/g, ''))}`,
             at: Utils.nowIso()
           }];
         }
@@ -1005,20 +1057,24 @@ export const UI = {
       } else {
         const newTask = {
           id: Utils.uuid(),
-          projectId: projectId || null,
+          projectId: projectId,
           title,
           description: desc,
           images: [],
           plannedHours: planned,
           assignees,
-          status: assignees.length ? 'assigned' : 'undefined',
+          status: assignees.length > 0 ? 'assigned' : 'unassigned',
           timeLog: [{ type: 'plan', by: me.username, hours: planned, at: Utils.nowIso() }],
           comments: [],
           createdAt: Utils.nowIso()
         };
         Storage.addTask(newTask);
       }
-      modalBg.remove();
+      
+      // Fade out modal with animation
+      modalBg.classList.remove('modal-show');
+      setTimeout(() => modalBg.remove(), 300);
+      
       // Refresh current view by re-navigating to current route
       const currentPath = window.location.hash.substring(1);
       Router.navigate(currentPath || '/dashboard');
@@ -1050,6 +1106,230 @@ export const UI = {
     // Focus first input
     setTimeout(() => titleInput.focus(), 100);
   },
+  
+  _openTaskReadOnlyView(task) {
+    const me = Auth.currentUser();
+    
+    const modalBg = document.createElement('div');
+    modalBg.className = 'modal-backdrop';
+    modalBg.setAttribute('role', 'dialog');
+    modalBg.setAttribute('aria-modal', 'true');
+    
+    // Add animation
+    setTimeout(() => modalBg.classList.add('modal-show'), 10);
+
+    const modal = document.createElement('div');
+    modal.className = 'modal modal-animated';
+    modal.style.maxWidth = '650px';
+
+    // Header with gradient
+    const header = document.createElement('div');
+    header.className = 'header';
+    header.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    header.style.color = 'white';
+    const headerTitle = document.createElement('div');
+    headerTitle.className = 'h-title';
+    headerTitle.textContent = task.title;
+    header.appendChild(headerTitle);
+    modal.appendChild(header);
+
+    const content = document.createElement('div');
+    content.className = 'flex flex-col gap-4';
+    content.style.padding = '1.5rem';
+    
+    // Project info
+    if (task.projectId) {
+      const project = Storage.projects().find(p => p.id === task.projectId);
+      if (project) {
+        const projectDiv = document.createElement('div');
+        projectDiv.style.cssText = 'padding: 0.75rem; background: linear-gradient(135deg, #f093fb 0%, #f5576c 20%); border-radius: 8px; color: white; font-weight: 600;';
+        projectDiv.innerHTML = `📁 ${I18n.t('projectName')}: ${project.name}`;
+        content.appendChild(projectDiv);
+      }
+    }
+    
+    // Description
+    const descDiv = document.createElement('div');
+    descDiv.style.cssText = 'padding: 1rem; background: #f9fafb; border-radius: 8px;';
+    descDiv.innerHTML = `
+      <div style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">${I18n.t('description')}:</div>
+      <div style="color: #6b7280;">${task.description || I18n.t('none')}</div>
+    `;
+    content.appendChild(descDiv);
+    
+    // Task details grid
+    const detailsGrid = document.createElement('div');
+    detailsGrid.className = 'grid grid-cols-2 gap-3';
+    
+    detailsGrid.innerHTML = `
+      <div style="padding: 0.75rem; background: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+        <div style="font-size: 0.875rem; color: #1e40af; font-weight: 600;">${I18n.t('plannedHours')}</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #1e3a8a;">${task.plannedHours || 0}h</div>
+      </div>
+      <div style="padding: 0.75rem; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #22c55e;">
+        <div style="font-size: 0.875rem; color: #15803d; font-weight: 600;">${I18n.t('status')}</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #166534;">${I18n.t(task.status.replace(/\s+/g, ''))}</div>
+      </div>
+    `;
+    content.appendChild(detailsGrid);
+    
+    // Assignees
+    if (task.assignees && task.assignees.length > 0) {
+      const assigneesDiv = document.createElement('div');
+      assigneesDiv.style.cssText = 'padding: 1rem; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;';
+      assigneesDiv.innerHTML = `
+        <div style="font-weight: 600; color: #92400e; margin-bottom: 0.5rem;">👥 ${I18n.t('assignees')}:</div>
+        <div style="color: #78350f;">${task.assignees.join(', ')}</div>
+      `;
+      content.appendChild(assigneesDiv);
+    }
+    
+    // Comments section
+    if (task.comments && task.comments.length > 0) {
+      const commentsDiv = document.createElement('div');
+      commentsDiv.style.cssText = 'border-top: 2px solid #e5e7eb; padding-top: 1rem;';
+      
+      const commentsTitle = document.createElement('h3');
+      commentsTitle.textContent = I18n.t('taskComments');
+      commentsTitle.style.cssText = 'font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;';
+      commentsDiv.appendChild(commentsTitle);
+      
+      const commentsList = document.createElement('div');
+      commentsList.style.cssText = 'max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;';
+      task.comments.forEach(c => {
+        const commentCard = document.createElement('div');
+        commentCard.style.cssText = 'padding: 0.75rem; background: white; border-radius: 8px; border-left: 3px solid #667eea; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
+        commentCard.innerHTML = `
+          <div style="font-weight: 600; color: #4f46e5; margin-bottom: 0.25rem;">${c.by}</div>
+          <div style="font-size: 0.875rem; color: #374151;">${c.text}</div>
+          <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">${new Date(c.at).toLocaleString()}</div>
+        `;
+        commentsList.appendChild(commentCard);
+      });
+      commentsDiv.appendChild(commentsList);
+      content.appendChild(commentsDiv);
+    }
+    
+    // Status update section for employees
+    const statusUpdateDiv = document.createElement('div');
+    statusUpdateDiv.style.cssText = 'border-top: 2px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem;';
+    
+    const statusLabel = document.createElement('label');
+    statusLabel.textContent = I18n.t('status') + ':';
+    statusLabel.style.cssText = 'font-weight: 600; display: block; margin-bottom: 0.5rem;';
+    statusUpdateDiv.appendChild(statusLabel);
+    
+    const statusSelect = document.createElement('select');
+    statusSelect.className = 'input';
+    statusSelect.id = 't-status-readonly';
+    statusSelect.innerHTML = `
+      <option value="undefined" ${task.status === 'undefined' ? 'selected' : ''}>${I18n.t('undefined')}</option>
+      <option value="unassigned" ${task.status === 'unassigned' ? 'selected' : ''}>${I18n.t('unassigned')}</option>
+      <option value="assigned" ${task.status === 'assigned' ? 'selected' : ''}>${I18n.t('assigned')}</option>
+      <option value="in progress" ${task.status === 'in progress' ? 'selected' : ''}>${I18n.t('inProgress')}</option>
+      <option value="completed" ${task.status === 'completed' ? 'selected' : ''}>${I18n.t('completed')}</option>
+      <option value="refused" ${task.status === 'refused' ? 'selected' : ''}>${I18n.t('refused')}</option>
+      <option value="cancelled" ${task.status === 'cancelled' ? 'selected' : ''}>${I18n.t('cancelled')}</option>
+    `;
+    statusUpdateDiv.appendChild(statusSelect);
+    
+    const commentLabel = document.createElement('label');
+    commentLabel.textContent = I18n.t('addComment') + ':';
+    commentLabel.style.cssText = 'font-weight: 600; display: block; margin-top: 0.75rem; margin-bottom: 0.5rem;';
+    statusUpdateDiv.appendChild(commentLabel);
+    
+    const commentInput = document.createElement('textarea');
+    commentInput.className = 'input';
+    commentInput.id = 't-comment-readonly';
+    commentInput.placeholder = I18n.t('addComment');
+    commentInput.rows = 2;
+    statusUpdateDiv.appendChild(commentInput);
+    
+    content.appendChild(statusUpdateDiv);
+    
+    // Buttons
+    const btnRow = document.createElement('div');
+    btnRow.className = 'flex justify-end gap-2';
+    btnRow.style.marginTop = '1rem';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'btn ghost';
+    closeBtn.textContent = I18n.t('close');
+    closeBtn.addEventListener('click', () => {
+      modalBg.classList.remove('modal-show');
+      setTimeout(() => modalBg.remove(), 300);
+    });
+    btnRow.appendChild(closeBtn);
+
+    const updateBtn = document.createElement('button');
+    updateBtn.className = 'btn';
+    updateBtn.textContent = I18n.t('save');
+    updateBtn.style.cssText = 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: transform 0.2s;';
+    updateBtn.addEventListener('mouseenter', () => updateBtn.style.transform = 'scale(1.05)');
+    updateBtn.addEventListener('mouseleave', () => updateBtn.style.transform = 'scale(1)');
+    updateBtn.addEventListener('click', () => {
+      const newStatus = statusSelect.value;
+      const commentText = commentInput.value.trim();
+      
+      const updates = {};
+      
+      if (newStatus !== task.status) {
+        updates.status = newStatus;
+        if (!task.comments) task.comments = [];
+        updates.comments = [...task.comments, {
+          by: me.username,
+          text: `${I18n.t('statusChange')}: ${I18n.t(task.status.replace(/\s+/g, ''))} → ${I18n.t(newStatus.replace(/\s+/g, ''))}`,
+          at: Utils.nowIso()
+        }];
+      }
+      
+      if (commentText) {
+        if (!updates.comments) {
+          updates.comments = task.comments ? [...task.comments] : [];
+        }
+        updates.comments.push({
+          by: me.username,
+          text: commentText,
+          at: Utils.nowIso()
+        });
+      }
+      
+      if (Object.keys(updates).length > 0) {
+        Storage.updateTask(task.id, updates);
+      }
+      
+      modalBg.classList.remove('modal-show');
+      setTimeout(() => modalBg.remove(), 300);
+      
+      const currentPath = window.location.hash.substring(1);
+      Router.navigate(currentPath || '/dashboard');
+    });
+    btnRow.appendChild(updateBtn);
+    content.appendChild(btnRow);
+
+    modal.appendChild(content);
+    modalBg.appendChild(modal);
+    document.body.appendChild(modalBg);
+
+    // Keyboard handler
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        modalBg.classList.remove('modal-show');
+        setTimeout(() => modalBg.remove(), 300);
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+
+    // Close on backdrop click
+    modalBg.addEventListener('click', (e) => {
+      if (e.target === modalBg) {
+        modalBg.classList.remove('modal-show');
+        setTimeout(() => modalBg.remove(), 300);
+        document.removeEventListener('keydown', handleEscape);
+      }
+    });
+  },
 
   _renderOrders(container, view = 'my') {
     container.innerHTML = '';
@@ -1071,9 +1351,50 @@ export const UI = {
     newBtn.textContent = I18n.t('createOrder');
     header.appendChild(newBtn);
     card.appendChild(header);
+    
+    // Add filters for "all orders" view
+    if (view === 'all') {
+      const filtersDiv = document.createElement('div');
+      filtersDiv.className = 'flex flex-wrap gap-3 mb-4';
+      filtersDiv.style.padding = '0 1rem';
+      
+      // Status filter
+      const statusFilter = document.createElement('select');
+      statusFilter.className = 'input';
+      statusFilter.id = 'filter-status';
+      statusFilter.style.flex = '1';
+      statusFilter.style.minWidth = '150px';
+      statusFilter.innerHTML = `
+        <option value="">${I18n.t('allStatuses')}</option>
+        <option value="pending">${I18n.t('pending')}</option>
+        <option value="in_search">${I18n.t('inSearch')}</option>
+        <option value="ordered">${I18n.t('ordered')}</option>
+        <option value="in_progress">${I18n.t('inProgress')}</option>
+        <option value="completed">${I18n.t('completed')}</option>
+        <option value="refused">${I18n.t('refused')}</option>
+        <option value="cancelled">${I18n.t('cancelled')}</option>
+      `;
+      filtersDiv.appendChild(statusFilter);
+      
+      // Urgent filter
+      const urgentFilter = document.createElement('select');
+      urgentFilter.className = 'input';
+      urgentFilter.id = 'filter-urgent';
+      urgentFilter.style.flex = '1';
+      urgentFilter.style.minWidth = '150px';
+      urgentFilter.innerHTML = `
+        <option value="">${I18n.t('allOrders')}</option>
+        <option value="urgent">🔥 ${I18n.t('urgent')} Only</option>
+        <option value="not-urgent">${I18n.t('notUrgent')}</option>
+      `;
+      filtersDiv.appendChild(urgentFilter);
+      
+      card.appendChild(filtersDiv);
+    }
 
     const list = document.createElement('div');
     list.className = 'grid gap-3';
+    list.id = 'orders-list';
 
     let allOrders = Storage.orders();
     
@@ -1090,36 +1411,69 @@ export const UI = {
       // Show all orders (no filtering)
     }
     
-    const orders = allOrders.slice().reverse();
-    orders.forEach(o => {
-      const el = document.createElement('div');
-      el.className = 'task-card';
-      const urgentBadge = o.isUrgent ? `<span class="badge badge-urgent">🔥 ${I18n.t('urgent')}</span>` : '';
-      const arrivalInfo = o.arrivalDate ? `<div class="text-xs text-gray-600">${I18n.t('arrivalDate')}: ${new Date(o.arrivalDate).toLocaleDateString()}</div>` : '';
-      el.innerHTML = `
-        <div class="flex-1">
-          <strong>${o.title}</strong> ${urgentBadge}
-          <div class="small">${o.description || ''}</div>
-          ${arrivalInfo}
-        </div>
-        <div class="text-right">
-          <div class="small">${o.status}</div>
-          <div class="mt-2"><button class="btn ghost" data-id="${o.id}">${I18n.t('view')}</button></div>
-        </div>
-      `;
-      list.appendChild(el);
-    });
+    const renderOrdersList = (filteredOrders) => {
+      list.innerHTML = '';
+      const orders = filteredOrders.slice().reverse();
+      orders.forEach(o => {
+        const el = document.createElement('div');
+        el.className = 'task-card';
+        const urgentBadge = o.isUrgent ? `<span class="badge badge-urgent">🔥 ${I18n.t('urgent')}</span>` : '';
+        const arrivalInfo = o.arrivalDate ? `<div class="text-xs text-gray-600">${I18n.t('arrivalDate')}: ${new Date(o.arrivalDate).toLocaleDateString()}</div>` : '';
+        el.innerHTML = `
+          <div class="flex-1">
+            <strong>${o.title}</strong> ${urgentBadge}
+            <div class="small">${o.description || ''}</div>
+            ${arrivalInfo}
+          </div>
+          <div class="text-right">
+            <div class="small">${o.status}</div>
+            <div class="mt-2"><button class="btn ghost" data-id="${o.id}">${I18n.t('view')}</button></div>
+          </div>
+        `;
+        list.appendChild(el);
+        
+        // Re-attach event listener
+        el.querySelector('button[data-id]').addEventListener('click', () => {
+          this._openOrderModal(o.id);
+        });
+      });
+    };
+    
+    renderOrdersList(allOrders);
+    
+    // Add filter change handlers
+    if (view === 'all') {
+      const statusFilter = card.querySelector('#filter-status');
+      const urgentFilter = card.querySelector('#filter-urgent');
+      
+      const applyFilters = () => {
+        let filtered = allOrders;
+        
+        const selectedStatus = statusFilter.value;
+        const selectedUrgent = urgentFilter.value;
+        
+        if (selectedStatus) {
+          filtered = filtered.filter(o => o.status === selectedStatus);
+        }
+        
+        if (selectedUrgent === 'urgent') {
+          filtered = filtered.filter(o => o.isUrgent === true);
+        } else if (selectedUrgent === 'not-urgent') {
+          filtered = filtered.filter(o => !o.isUrgent);
+        }
+        
+        renderOrdersList(filtered);
+      };
+      
+      statusFilter.addEventListener('change', applyFilters);
+      urgentFilter.addEventListener('change', applyFilters);
+    }
+    
     card.appendChild(list);
     container.appendChild(card);
 
     // Event handlers
     newBtn.addEventListener('click', () => this._openOrderModal());
-    list.querySelectorAll('button[data-id]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        this._openOrderModal(id);
-      });
-    });
   },
 
   _openOrderModal(orderId = null) {
@@ -1131,9 +1485,12 @@ export const UI = {
     modalBg.className = 'modal-backdrop';
     modalBg.setAttribute('role', 'dialog');
     modalBg.setAttribute('aria-modal', 'true');
+    
+    // Add animation
+    setTimeout(() => modalBg.classList.add('modal-show'), 10);
 
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    modal.className = 'modal modal-animated';
 
     const header = document.createElement('div');
     header.className = 'header';
@@ -1181,7 +1538,10 @@ export const UI = {
       const cancelBtn = document.createElement('button');
       cancelBtn.className = 'btn ghost';
       cancelBtn.textContent = I18n.t('cancel');
-      cancelBtn.addEventListener('click', () => modalBg.remove());
+      cancelBtn.addEventListener('click', () => {
+        modalBg.classList.remove('modal-show');
+        setTimeout(() => modalBg.remove(), 300);
+      });
       btnRow.appendChild(cancelBtn);
 
       const createBtn = document.createElement('button');
@@ -1209,7 +1569,8 @@ export const UI = {
           notes: ''
         };
         Storage.addOrder(order);
-        modalBg.remove();
+        modalBg.classList.remove('modal-show');
+        setTimeout(() => modalBg.remove(), 300);
         // Refresh current page
         const currentPath = location.hash.replace('#', '') || '/';
         Router.navigate(currentPath);
@@ -1228,7 +1589,7 @@ export const UI = {
         <div><strong>${I18n.t('description')}:</strong> ${order.description || I18n.t('none')}</div>
         <div><strong>${I18n.t('requestedBy')}:</strong> ${order.requestedBy}</div>
         <div><strong>${I18n.t('date')}:</strong> ${new Date(order.date).toLocaleDateString()}</div>
-        <div><strong>${I18n.t('urgent')}:</strong> ${order.isUrgent ? `🔥 ${I18n.t('yes')}` : I18n.t('no')}</div>
+        ${order.isUrgent ? `<div><strong>${I18n.t('urgent')}:</strong> 🔥 ${I18n.t('yes')}</div>` : ''}
       `;
       form.appendChild(detailsDiv);
 
@@ -1292,7 +1653,10 @@ export const UI = {
         const cancelBtn = document.createElement('button');
         cancelBtn.className = 'btn ghost';
         cancelBtn.textContent = I18n.t('cancel');
-        cancelBtn.addEventListener('click', () => modalBg.remove());
+        cancelBtn.addEventListener('click', () => {
+          modalBg.classList.remove('modal-show');
+          setTimeout(() => modalBg.remove(), 300);
+        });
         btnRow.appendChild(cancelBtn);
 
         const saveBtn = document.createElement('button');
@@ -1308,7 +1672,8 @@ export const UI = {
             arrivalDate: newArrival,
             notes: newNotes
           });
-          modalBg.remove();
+          modalBg.classList.remove('modal-show');
+          setTimeout(() => modalBg.remove(), 300);
           // Refresh current page
           const currentPath = location.hash.replace('#', '') || '/';
           Router.navigate(currentPath);
@@ -1333,7 +1698,10 @@ export const UI = {
         const closeBtn = document.createElement('button');
         closeBtn.className = 'btn';
         closeBtn.textContent = I18n.t('close');
-        closeBtn.addEventListener('click', () => modalBg.remove());
+        closeBtn.addEventListener('click', () => {
+          modalBg.classList.remove('modal-show');
+          setTimeout(() => modalBg.remove(), 300);
+        });
         btnRow.appendChild(closeBtn);
         form.appendChild(btnRow);
       }
@@ -1373,10 +1741,52 @@ export const UI = {
     header.appendChild(headerTitle);
     card.appendChild(header);
 
-    const content = document.createElement('div');
-    content.className = 'small';
-    content.textContent = 'Project management (to be completed)';
-    card.appendChild(content);
+    // Display all projects
+    const projects = Storage.projects();
+    
+    if (projects.length === 0) {
+      const noProjects = document.createElement('div');
+      noProjects.className = 'small';
+      noProjects.textContent = I18n.t('noProjects') || 'No projects';
+      card.appendChild(noProjects);
+    } else {
+      const projectList = document.createElement('div');
+      projectList.className = 'flex flex-col gap-3';
+      
+      projects.forEach(p => {
+        const projectCard = document.createElement('div');
+        projectCard.className = 'accent-bg';
+        projectCard.style.cursor = 'pointer';
+        
+        const projectTasks = Storage.tasks().filter(t => t.projectId === p.id);
+        const completedTasks = projectTasks.filter(t => t.status === 'completed' || t.status === 'done').length;
+        
+        projectCard.innerHTML = `
+          <div class="flex justify-between items-center">
+            <div>
+              <strong style="font-size: 1.1rem;">📁 ${p.name}</strong>
+              <div class="small mt-1">${I18n.t('tasks')}: ${projectTasks.length} (${completedTasks} ${I18n.t('completed')})</div>
+            </div>
+            <button class="btn secondary" data-project-id="${p.id}">${I18n.t('view')}</button>
+          </div>
+        `;
+        
+        projectList.appendChild(projectCard);
+      });
+      
+      card.appendChild(projectList);
+      
+      // Add event listeners
+      card.querySelectorAll('button[data-project-id]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const projectId = btn.getAttribute('data-project-id');
+          // For now, just navigate to all tasks filtered by this project
+          Router.navigate('/all-tasks');
+        });
+      });
+    }
+    
     container.appendChild(card);
   },
 
@@ -1384,9 +1794,9 @@ export const UI = {
     container.innerHTML = '';
     const me = Auth.currentUser();
     
-    // Only admin and mini_admin can access
-    if (!['admin', 'mini_admin'].includes(me.role)) {
-      container.innerHTML = '<div class="card"><div class="h-title">Access Denied</div></div>';
+    // Only admin can manage users (not mini_admin)
+    if (me.role !== 'admin') {
+      container.innerHTML = '<div class="card"><div class="h-title">' + I18n.t('accessDenied') + '</div></div>';
       return;
     }
     

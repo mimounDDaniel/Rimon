@@ -72,6 +72,7 @@ export const I18n = {
       notes: 'Notes',
       urgent: 'Urgent',
       markAsUrgent: 'Mark as urgent',
+      notUrgent: 'Not Urgent',
       none: 'None',
       
       // Tasks
@@ -89,6 +90,7 @@ export const I18n = {
       assigned: 'Assigned',
       undefined: 'Undefined',
       allStatuses: 'All Statuses',
+      allOrders: 'All Orders',
       filterByStatus: 'Filter by status',
       filterByProject: 'Filter by project',
       allProjects: 'All Projects',
@@ -98,10 +100,17 @@ export const I18n = {
       taskHistory: 'Task History',
       addPhoto: 'Add Photo',
       taskReadOnly: 'Task details are read-only for employees',
+      createUnassignedTask: 'Just create the task for now',
+      allFieldsRequired: 'All fields must be filled',
       
       // Dashboard
+      goodMorning: 'Good morning',
+      goodAfternoon: 'Good afternoon',
+      goodEvening: 'Good evening',
+      todaysTasks: 'Here are today\'s tasks',
       recentOrders: 'Recent orders',
       noOrders: 'No orders',
+      calendar: 'Calendar',
       
       // Messages
       notFound: 'Not found',
@@ -193,6 +202,7 @@ export const I18n = {
       notes: 'הערות',
       urgent: 'דחוף',
       markAsUrgent: 'סמן כדחוף',
+      notUrgent: 'לא דחוף',
       none: 'אין',
       
       // Tasks
@@ -210,6 +220,7 @@ export const I18n = {
       assigned: 'משוייך',
       undefined: 'לא מוגדר',
       allStatuses: 'כל הסטטוסים',
+      allOrders: 'כל ההזמנות',
       filterByStatus: 'סנן לפי סטטוס',
       filterByProject: 'סנן לפי פרויקט',
       allProjects: 'כל הפרויקטים',
@@ -219,10 +230,17 @@ export const I18n = {
       taskHistory: 'היסטוריית משימה',
       addPhoto: 'הוסף תמונה',
       taskReadOnly: 'פרטי המשימה הם לקריאה בלבד עבור עובדים',
+      createUnassignedTask: 'רק צור את המשימה לעכשיו',
+      allFieldsRequired: 'כל השדות חייבים להיות מלאים',
       
       // Dashboard
+      goodMorning: 'בוקר טוב',
+      goodAfternoon: 'צהריים טובים',
+      goodEvening: 'ערב טוב',
+      todaysTasks: 'הנה המשימות של היום',
       recentOrders: 'בקשות אחרונות',
       noOrders: 'אין בקשות',
+      calendar: 'לוח שנה',
       
       // Messages
       notFound: 'לא נמצא',
