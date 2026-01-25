@@ -142,7 +142,7 @@ export const Storage = {
   deleteTask(id){ this._db.tasks = this._db.tasks.filter(x=>x.id!==id); this.persist(); },
 
   addOrder(o){ this._db.orders.push(o); this.persist(); return o; },
-  updateOrder(id,attrs){ const o = this._db.orders.find(x=>x.id===id); Object.assign(o,attrs); this.persist(); return o; },
+  updateOrder(id,attrs){ const o = this._db.orders.find(x=>x.id===id); if(o) Object.assign(o,attrs); this.persist(); return o; },
 
   // helper to write entire DB (for admin)
   setDB(newDb){ this._db = newDb; this.persist(); }

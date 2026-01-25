@@ -575,7 +575,7 @@ export const UI = {
       orders.forEach(o => {
         const el = document.createElement('div');
         el.className = 'task-card';
-        const urgentBadge = o.isUrgent ? `<span class="badge badge-urgent">${I18n.t('urgent')}</span>` : '';
+        const urgentBadge = o.isUrgent ? `<span class="badge badge-urgent">🔥 ${I18n.t('urgent')}</span>` : '';
         el.innerHTML = `
           <div class="flex-1">
             <strong>${o.title}</strong> ${urgentBadge}
