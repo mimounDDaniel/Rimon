@@ -18,8 +18,12 @@ export const I18n = {
       // Navigation
       dashboard: 'Dashboard',
       tasks: 'Tasks',
+      myTasks: 'My Tasks',
+      allTasks: 'All Tasks',
       projects: 'Projects',
       orders: 'Orders',
+      myOrders: 'My Orders',
+      allOrders: 'All Orders',
       users: 'Users',
       settings: 'Settings',
       profile: 'Profile',
@@ -36,6 +40,8 @@ export const I18n = {
       close: 'Close',
       open: 'Open',
       view: 'View',
+      yes: 'Yes',
+      no: 'No',
       
       // Common labels
       title: 'Title',
@@ -55,6 +61,18 @@ export const I18n = {
       orderRequest: 'Order Request',
       requested: 'Requested',
       requestedBy: 'Requested by',
+      pending: 'Pending',
+      inSearch: 'In Search',
+      ordered: 'Ordered',
+      inProgress: 'In Progress',
+      completed: 'Completed',
+      refused: 'Refused',
+      cancelled: 'Cancelled',
+      arrivalDate: 'Arrival Date',
+      notes: 'Notes',
+      urgent: 'Urgent',
+      markAsUrgent: 'Mark as urgent',
+      none: 'None',
       
       // Tasks
       createTask: 'Create Task',
@@ -76,6 +94,9 @@ export const I18n = {
       usernamePasswordRequired: 'Username and password required',
       loginFailed: 'Login failed',
       initError: 'Initialization error',
+      accessDenied: 'Access Denied',
+      noAccessToAllTasks: 'Your role does not have access to all tasks.',
+      noAccessToAllOrders: 'Your role does not have access to all orders.',
       
       // Mobile menu
       menu: 'Menu',
@@ -102,8 +123,12 @@ export const I18n = {
       // Navigation
       dashboard: 'לוח בקרה',
       tasks: 'משימות',
+      myTasks: 'המשימות שלי',
+      allTasks: 'כל המשימות',
       projects: 'פרויקטים',
       orders: 'הזמנות',
+      myOrders: 'ההזמנות שלי',
+      allOrders: 'כל ההזמנות',
       users: 'משתמשים',
       settings: 'הגדרות',
       profile: 'פרופיל',
@@ -120,6 +145,8 @@ export const I18n = {
       close: 'סגור',
       open: 'פתח',
       view: 'צפה',
+      yes: 'כן',
+      no: 'לא',
       
       // Common labels
       title: 'כותרת',
@@ -139,6 +166,18 @@ export const I18n = {
       orderRequest: 'בקשת הזמנה',
       requested: 'נתבקש',
       requestedBy: 'התבקש על ידי',
+      pending: 'ממתין',
+      inSearch: 'בחיפוש',
+      ordered: 'הוזמן',
+      inProgress: 'בתהליך',
+      completed: 'הושלם',
+      refused: 'נדחה',
+      cancelled: 'בוטל',
+      arrivalDate: 'תאריך הגעה',
+      notes: 'הערות',
+      urgent: 'דחוף',
+      markAsUrgent: 'סמן כדחוף',
+      none: 'אין',
       
       // Tasks
       createTask: 'צור משימה',
@@ -160,6 +199,9 @@ export const I18n = {
       usernamePasswordRequired: 'שם משתמש וסיסמה נדרשים',
       loginFailed: 'התחברות נכשלה',
       initError: 'שגיאת אתחול',
+      accessDenied: 'גישה נדחתה',
+      noAccessToAllTasks: 'לתפקיד שלך אין גישה לכל המשימות.',
+      noAccessToAllOrders: 'לתפקיד שלך אין גישה לכל ההזמנות.',
       
       // Mobile menu
       menu: 'תפריט',
