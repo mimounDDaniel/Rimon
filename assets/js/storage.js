@@ -101,13 +101,13 @@ export const Storage = {
       this._db.tasks.push(r5);
       
       // Sample orders
-      const o1 = {id: Utils.uuid(), title: 'M5X15 screws', description:'Order screws for project', date: now, status: 'Requested', requestedBy: 'daniel'};
+      const o1 = {id: Utils.uuid(), title: 'M5X15 screws', description:'Order screws for project', date: now, status: 'pending', requestedBy: 'daniel', isUrgent: false, arrivalDate: null, notes: ''};
       this._db.orders.push(o1);
       
-      const o2 = {id: Utils.uuid(), title: 'Doors for RTG', description:'Custom doors needed', date: now, status: 'Requested', requestedBy: 'sasha'};
+      const o2 = {id: Utils.uuid(), title: 'Doors for RTG', description:'Custom doors needed', date: now, status: 'pending', requestedBy: 'sasha', isUrgent: false, arrivalDate: null, notes: ''};
       this._db.orders.push(o2);
       
-      const o3 = {id: Utils.uuid(), title: 'Chevrolet Savana for vacation', description:'Vehicle rental', date: now, status: 'Requested', requestedBy: 'avri'};
+      const o3 = {id: Utils.uuid(), title: 'Chevrolet Savana for vacation', description:'Vehicle rental', date: now, status: 'pending', requestedBy: 'avri', isUrgent: true, arrivalDate: null, notes: ''};
       this._db.orders.push(o3);
 
       this.persist();
