@@ -59,44 +59,44 @@ export const Storage = {
       // Herzliya project tasks
       const h1 = {
         id: Utils.uuid(), projectId: herzliya.id, title: 'Modify the LEDs', description:'Modify lighting system', images:[], plannedHours:4,
-        assignees:['daniel'], status:'in progress', timeLog: [{type:'plan', by:'system', hours:4, at:now}], createdAt:now
+        assignees:['daniel'], status:'in progress', timeLog: [{type:'plan', by:'system', hours:4, at:now}], comments:[], createdAt:now
       };
       this._db.tasks.push(h1);
       
       const h2 = {
         id: Utils.uuid(), projectId: herzliya.id, title: 'Reorganize materials in shelves', description:'Organize storage', images:[], plannedHours:3,
-        assignees:['daniel'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:3, at:now}], createdAt:now
+        assignees:['daniel'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:3, at:now}], comments:[], createdAt:now
       };
       this._db.tasks.push(h2);
       
       // RTG project tasks
       const r1 = {
         id: Utils.uuid(), projectId: rtg.id, title: 'Make a hole for ventilation', description:'Drilling work', images:[], plannedHours:2,
-        assignees:['sasha'], status:'in progress', timeLog: [{type:'plan', by:'system', hours:2, at:now}], createdAt:now
+        assignees:['sasha'], status:'in progress', timeLog: [{type:'plan', by:'system', hours:2, at:now}], comments:[], createdAt:now
       };
       this._db.tasks.push(r1);
       
       const r2 = {
         id: Utils.uuid(), projectId: rtg.id, title: 'Install communication boxes', description:'Install network equipment', images:[], plannedHours:5,
-        assignees:['daniel', 'sasha'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:5, at:now}], createdAt:now
+        assignees:['daniel', 'sasha'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:5, at:now}], comments:[], createdAt:now
       };
       this._db.tasks.push(r2);
       
       const r3 = {
         id: Utils.uuid(), projectId: rtg.id, title: 'Connect communication boxes to electrical panels', description:'Electrical wiring', images:[], plannedHours:4,
-        assignees:['mathy'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:4, at:now}], createdAt:now
+        assignees:['mathy'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:4, at:now}], comments:[], createdAt:now
       };
       this._db.tasks.push(r3);
       
       const r4 = {
         id: Utils.uuid(), projectId: rtg.id, title: 'Install the LEDs', description:'LED installation', images:[], plannedHours:3,
-        assignees:['mathy'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:3, at:now}], createdAt:now
+        assignees:['mathy'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:3, at:now}], comments:[], createdAt:now
       };
       this._db.tasks.push(r4);
       
       const r5 = {
         id: Utils.uuid(), projectId: rtg.id, title: 'Install the generator', description:'Generator installation', images:[], plannedHours:6,
-        assignees:['avri'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:6, at:now}], createdAt:now
+        assignees:['avri'], status:'unassigned', timeLog: [{type:'plan', by:'system', hours:6, at:now}], comments:[], createdAt:now
       };
       this._db.tasks.push(r5);
       
