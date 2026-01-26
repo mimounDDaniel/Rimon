@@ -58,10 +58,14 @@ export const UI = {
     // Route to appropriate content
     if (path === '/dashboard' || path === '/') {
       this._renderDashboard(content);
-    } else if (path.startsWith('/tasks')) {
-      this._renderTasks(content);
-    } else if (path.startsWith('/orders')) {
-      this._renderOrders(content);
+    } else if (path.startsWith('/my-tasks')) {
+      this._renderTasks(content, 'my');
+    } else if (path.startsWith('/all-tasks')) {
+      this._renderTasks(content, 'all');
+    } else if (path.startsWith('/my-orders')) {
+      this._renderOrders(content, 'my');
+    } else if (path.startsWith('/all-orders')) {
+      this._renderOrders(content, 'all');
     } else if (path.startsWith('/projects')) {
       this._renderProjects(content);
     } else if (path.startsWith('/users')) {
@@ -147,8 +151,8 @@ export const UI = {
     langSelect.className = 'lang-selector';
     langSelect.setAttribute('aria-label', I18n.t('selectLanguage'));
     langSelect.innerHTML = `
-      <option value="en">🇺🇸</option>
-      <option value="he">🇮🇱</option>
+      <option value="en">🇺🇸 English</option>
+      <option value="he">🇮🇱 עברית</option>
     `;
     langSelect.value = I18n.lang();
     langSelect.addEventListener('change', (e) => {
@@ -227,8 +231,8 @@ export const UI = {
     langSelect.className = 'lang-selector';
     langSelect.setAttribute('aria-label', I18n.t('selectLanguage'));
     langSelect.innerHTML = `
-      <option value="en">🇺🇸</option>
-      <option value="he">🇮🇱</option>
+      <option value="en">🇺🇸 EN</option>
+      <option value="he">🇮🇱 HE</option>
     `;
     langSelect.value = I18n.lang();
     langSelect.addEventListener('change', (e) => {
@@ -288,10 +292,14 @@ export const UI = {
     const me = Auth.currentUser();
     const items = [
       { path: '/dashboard', label: I18n.t('dashboard'), roles: ['admin', 'mini_admin', 'employee', 'orders_manager'] },
-      { path: '/tasks', label: I18n.t('tasks'), roles: ['admin', 'mini_admin', 'employee'] },
+      // Tasks menu items
+      { path: '/my-tasks', label: I18n.t('myTasks'), roles: ['admin', 'mini_admin', 'employee'] },
+      { path: '/all-tasks', label: I18n.t('allTasks'), roles: ['admin', 'mini_admin'] },
       { path: '/projects', label: I18n.t('projects'), roles: ['admin', 'mini_admin', 'employee'] },
-      { path: '/orders', label: I18n.t('orders'), roles: ['admin', 'mini_admin', 'orders_manager'] },
-      { path: '/users', label: I18n.t('users'), roles: ['admin', 'mini_admin'] }
+      // Orders menu items
+      { path: '/my-orders', label: I18n.t('myOrders'), roles: ['admin', 'mini_admin', 'employee', 'orders_manager'] },
+      { path: '/all-orders', label: I18n.t('allOrders'), roles: ['admin', 'mini_admin', 'orders_manager'] },
+      { path: '/users', label: I18n.t('users'), roles: ['admin'] }
     ];
 
     items.forEach(it => {
@@ -365,10 +373,14 @@ export const UI = {
     const me = Auth.currentUser();
     const items = [
       { path: '/dashboard', label: I18n.t('dashboard'), roles: ['admin', 'mini_admin', 'employee', 'orders_manager'] },
-      { path: '/tasks', label: I18n.t('tasks'), roles: ['admin', 'mini_admin', 'employee'] },
+      // Tasks menu items
+      { path: '/my-tasks', label: I18n.t('myTasks'), roles: ['admin', 'mini_admin', 'employee'] },
+      { path: '/all-tasks', label: I18n.t('allTasks'), roles: ['admin', 'mini_admin'] },
       { path: '/projects', label: I18n.t('projects'), roles: ['admin', 'mini_admin', 'employee'] },
-      { path: '/orders', label: I18n.t('orders'), roles: ['admin', 'mini_admin', 'orders_manager'] },
-      { path: '/users', label: I18n.t('users'), roles: ['admin', 'mini_admin'] }
+      // Orders menu items
+      { path: '/my-orders', label: I18n.t('myOrders'), roles: ['admin', 'mini_admin', 'employee', 'orders_manager'] },
+      { path: '/all-orders', label: I18n.t('allOrders'), roles: ['admin', 'mini_admin', 'orders_manager'] },
+      { path: '/users', label: I18n.t('users'), roles: ['admin'] }
     ];
 
     items.forEach(it => {
@@ -462,60 +474,77 @@ export const UI = {
     const card = document.createElement('div');
     card.className = 'card';
 
+    const me = Auth.currentUser();
+    
+    // Helper function to get greeting based on time of day
+    const getGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) return I18n.t('goodMorning');
+      if (hour < 18) return I18n.t('goodAfternoon');
+      return I18n.t('goodEvening');
+    };
+
     const header = document.createElement('div');
     header.className = 'header';
     const headerTitle = document.createElement('div');
     headerTitle.className = 'h-title';
-    headerTitle.textContent = I18n.t('dashboard');
+    headerTitle.textContent = `${getGreeting()}, ${me.displayName}`;
     header.appendChild(headerTitle);
     card.appendChild(header);
 
-    // Summary
+    // Summary - hide task count for orders_manager
     const summary = document.createElement('div');
     summary.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 mb-6';
-    const openTasksCount = Storage.tasks().filter(t => t.status !== 'done').length;
     const ordersCount = Storage.orders().length;
-
-    summary.innerHTML = `
-      <div class="accent-bg">
-        <strong>${I18n.t('openTasks')}</strong>
-        <div class="text-2xl font-bold mt-1">${openTasksCount}</div>
-      </div>
-      <div class="accent-bg">
-        <strong>${I18n.t('orders')}</strong>
-        <div class="text-2xl font-bold mt-1">${ordersCount}</div>
-      </div>
-    `;
+    
+    if (me.role !== 'orders_manager') {
+      const openTasksCount = Storage.tasks().filter(t => t.status !== 'done' && t.status !== 'completed').length;
+      summary.innerHTML = `
+        <div class="accent-bg">
+          <strong>${I18n.t('openTasks')}</strong>
+          <div class="text-2xl font-bold mt-1">${openTasksCount}</div>
+        </div>
+        <div class="accent-bg">
+          <strong>${I18n.t('orders')}</strong>
+          <div class="text-2xl font-bold mt-1">${ordersCount}</div>
+        </div>
+      `;
+    } else {
+      // Orders manager only sees orders
+      summary.innerHTML = `
+        <div class="accent-bg">
+          <strong>${I18n.t('orders')}</strong>
+          <div class="text-2xl font-bold mt-1">${ordersCount}</div>
+        </div>
+      `;
+    }
     card.appendChild(summary);
 
     // Recent tasks and orders
     const grid = document.createElement('div');
     grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
 
-    // Tasks (filtered by role)
-    const tasksCol = document.createElement('div');
-    const tasksHeader = document.createElement('h3');
-    tasksHeader.className = 'font-semibold mb-3';
-    tasksHeader.textContent = I18n.t('recentTasks');
-    tasksCol.appendChild(tasksHeader);
+    // Tasks (filtered by role) - orders_manager doesn't see tasks
+    if (me.role !== 'orders_manager') {
+      const tasksCol = document.createElement('div');
+      const tasksHeader = document.createElement('h3');
+      tasksHeader.className = 'font-semibold mb-3';
+      tasksHeader.textContent = I18n.t('recentTasks');
+      tasksCol.appendChild(tasksHeader);
 
-    const me = Auth.currentUser();
-    let allTasks = Storage.tasks();
-    
-    // Filter tasks based on role
-    if (me.role === 'employee') {
-      // Employees only see tasks assigned to them
-      allTasks = allTasks.filter(t => t.assignees && t.assignees.includes(me.username));
-    } else if (me.role === 'orders_manager') {
-      // Orders managers don't see tasks
-      allTasks = [];
-    }
-    // admin and mini_admin see all tasks
-    
-    const tasks = allTasks.slice().reverse().slice(0, 5);
-    
-    if (tasks.length === 0) {
-      const noTasks = document.createElement('div');
+      let allTasks = Storage.tasks();
+      
+      // Filter tasks based on role
+      if (me.role === 'employee') {
+        // Employees only see tasks assigned to them
+        allTasks = allTasks.filter(t => t.assignees && t.assignees.includes(me.username));
+      }
+      // admin and mini_admin see all tasks
+      
+      const tasks = allTasks.slice().reverse().slice(0, 5);
+      
+      if (tasks.length === 0) {
+        const noTasks = document.createElement('div');
       noTasks.className = 'small';
       noTasks.textContent = 'No tasks';
       tasksCol.appendChild(noTasks);
@@ -536,6 +565,9 @@ export const UI = {
         tasksCol.appendChild(el);
       });
     }
+    
+    grid.appendChild(tasksCol);
+  }
 
     // Orders
     const ordersCol = document.createElement('div');
@@ -544,7 +576,16 @@ export const UI = {
     ordersHeader.textContent = I18n.t('recentOrders');
     ordersCol.appendChild(ordersHeader);
 
-    const orders = Storage.orders().slice().reverse().slice(0, 5);
+    let allOrders = Storage.orders();
+    
+    // Filter orders based on role
+    if (me.role === 'employee') {
+      // Employees only see their own orders
+      allOrders = allOrders.filter(o => o.requestedBy === me.username);
+    }
+    // admin, mini_admin, and orders_manager see all orders
+    
+    const orders = allOrders.slice().reverse().slice(0, 5);
     if (orders.length === 0) {
       const noOrders = document.createElement('div');
       noOrders.className = 'small';
@@ -554,9 +595,11 @@ export const UI = {
       orders.forEach(o => {
         const el = document.createElement('div');
         el.className = 'task-card';
+        // Only show urgent badge if order is urgent
+        const urgentBadge = o.isUrgent ? `<span class="badge badge-urgent">🔥 ${I18n.t('urgent')}</span>` : '';
         el.innerHTML = `
           <div class="flex-1">
-            <strong>${o.title}</strong>
+            <strong>${o.title}</strong> ${urgentBadge}
             <div class="small">${o.description || ''}</div>
           </div>
           <div class="text-right">
@@ -568,7 +611,6 @@ export const UI = {
       });
     }
 
-    grid.appendChild(tasksCol);
     grid.appendChild(ordersCol);
     card.appendChild(grid);
     container.appendChild(card);
@@ -583,7 +625,7 @@ export const UI = {
     });
   },
 
-  _renderTasks(container) {
+  _renderTasks(container, view = 'my') {
     container.innerHTML = '';
     const me = Auth.currentUser();
     
@@ -600,65 +642,186 @@ export const UI = {
     header.className = 'header';
     const headerTitle = document.createElement('div');
     headerTitle.className = 'h-title';
-    headerTitle.textContent = I18n.t('tasks');
+    headerTitle.textContent = view === 'all' ? I18n.t('allTasks') : I18n.t('myTasks');
     header.appendChild(headerTitle);
 
     const newBtn = document.createElement('button');
     newBtn.className = 'btn';
     newBtn.id = 'btn-new-task';
     newBtn.textContent = I18n.t('newTask');
-    header.appendChild(newBtn);
+    // Only admins and mini_admins can create new tasks
+    if (me.role === 'admin' || me.role === 'mini_admin') {
+      header.appendChild(newBtn);
+    }
     card.appendChild(header);
+
+    // Add filters section for admins in 'all' view
+    if (view === 'all' && (me.role === 'admin' || me.role === 'mini_admin')) {
+      const filtersDiv = document.createElement('div');
+      filtersDiv.className = 'filters-section';
+      filtersDiv.style.cssText = 'display: flex; gap: 1rem; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; margin-bottom: 1rem; flex-wrap: wrap;';
+      
+      // Status filter
+      const statusFilter = document.createElement('select');
+      statusFilter.className = 'input';
+      statusFilter.id = 'status-filter';
+      statusFilter.style.cssText = 'flex: 1; min-width: 200px; background: white;';
+      statusFilter.innerHTML = `
+        <option value="">${I18n.t('allStatuses')}</option>
+        <option value="undefined">${I18n.t('undefined')}</option>
+        <option value="unassigned">${I18n.t('unassigned')}</option>
+        <option value="assigned">${I18n.t('assigned')}</option>
+        <option value="in progress">${I18n.t('inProgress')}</option>
+        <option value="completed">${I18n.t('completed')}</option>
+        <option value="refused">${I18n.t('refused')}</option>
+        <option value="cancelled">${I18n.t('cancelled')}</option>
+      `;
+      filtersDiv.appendChild(statusFilter);
+      
+      // Project filter
+      const projectFilter = document.createElement('select');
+      projectFilter.className = 'input';
+      projectFilter.id = 'project-filter';
+      projectFilter.style.cssText = 'flex: 1; min-width: 200px; background: white;';
+      const projects = Storage.projects();
+      projectFilter.innerHTML = `<option value="">${I18n.t('allProjects')}</option>` +
+        projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      filtersDiv.appendChild(projectFilter);
+      
+      card.appendChild(filtersDiv);
+    }
 
     const list = document.createElement('div');
     list.className = 'grid gap-3';
+    list.id = 'tasks-list';
     
-    let allTasks = Storage.tasks();
+    const renderTaskList = () => {
+      list.innerHTML = '';
+      let allTasks = Storage.tasks();
+      
+      // Filter tasks based on view and role
+      if (view === 'my') {
+        // Show only tasks assigned to current user
+        allTasks = allTasks.filter(t => t.assignees && t.assignees.includes(me.username));
+      } else if (view === 'all') {
+        // Only admins and mini_admins can see all tasks
+        if (me.role !== 'admin' && me.role !== 'mini_admin') {
+          container.innerHTML = `<div class="card"><div class="h-title">${I18n.t('accessDenied')}</div><div class="small">${I18n.t('noAccessToAllTasks')}</div></div>`;
+          return;
+        }
+        // Apply filters
+        const statusFilter = document.getElementById('status-filter');
+        const projectFilter = document.getElementById('project-filter');
+        if (statusFilter && statusFilter.value) {
+          allTasks = allTasks.filter(t => t.status === statusFilter.value);
+        }
+        if (projectFilter && projectFilter.value) {
+          allTasks = allTasks.filter(t => t.projectId === projectFilter.value);
+        }
+      }
+      
+      allTasks.forEach(t => {
+        const project = Storage.projects().find(p => p.id === t.projectId);
+        const statusBadge = this._getStatusBadge(t.status);
+        const el = document.createElement('div');
+        el.className = 'task-card';
+        el.style.cssText = 'transition: transform 0.2s, box-shadow 0.2s;';
+        el.innerHTML = `
+          <div class="flex-1">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <strong style="font-size: 1.1rem;">${t.title}</strong>
+              ${statusBadge}
+            </div>
+            <div class="small" style="color: #666; margin-bottom: 0.25rem;">${t.description || ''}</div>
+            ${project ? `<div class="small" style="color: #764ba2; font-weight: 600;">📁 ${project.name}</div>` : ''}
+          </div>
+          <div class="text-right">
+            <div class="small">${I18n.t('planned')}: ${t.plannedHours || 0}h</div>
+            <div class="mt-2"><button class="btn secondary" data-id="${t.id}">${I18n.t('open')}</button></div>
+          </div>
+        `;
+        el.addEventListener('mouseenter', () => {
+          el.style.transform = 'translateY(-2px)';
+          el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.transform = 'translateY(0)';
+          el.style.boxShadow = '';
+        });
+        list.appendChild(el);
+      });
+      
+      // Re-attach event handlers
+      list.querySelectorAll('button[data-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          this._openTaskModal(id);
+        });
+      });
+    };
     
-    // Filter tasks based on role
-    if (me.role === 'employee') {
-      // Employees only see tasks assigned to them
-      allTasks = allTasks.filter(t => t.assignees && t.assignees.includes(me.username));
-    }
-    // admin and mini_admin see all tasks
-    
-    allTasks.forEach(t => {
-      const el = document.createElement('div');
-      el.className = 'task-card';
-      el.innerHTML = `
-        <div class="flex-1">
-          <strong>${t.title}</strong>
-          <div class="small">${t.description || ''}</div>
-        </div>
-        <div class="text-right">
-          <div class="small">${I18n.t('planned')}: ${t.plannedHours || 0}h</div>
-          <div class="mt-2"><button class="btn secondary" data-id="${t.id}">${I18n.t('open')}</button></div>
-        </div>
-      `;
-      list.appendChild(el);
-    });
+    renderTaskList();
     card.appendChild(list);
     container.appendChild(card);
 
     // Event handlers
-    newBtn.addEventListener('click', () => this._openTaskModal());
-    list.querySelectorAll('button[data-id]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        this._openTaskModal(id);
-      });
-    });
+    if (me.role === 'admin' || me.role === 'mini_admin') {
+      newBtn.addEventListener('click', () => this._openTaskModal());
+    }
+    
+    // Filter change handlers
+    const statusFilter = document.getElementById('status-filter');
+    const projectFilter = document.getElementById('project-filter');
+    if (statusFilter) {
+      statusFilter.addEventListener('change', renderTaskList);
+    }
+    if (projectFilter) {
+      projectFilter.addEventListener('change', renderTaskList);
+    }
+  },
+  
+  _getStatusBadge(status) {
+    const statusColors = {
+      'undefined': 'background: #94a3b8; color: white;',
+      'unassigned': 'background: #e2e8f0; color: #475569;',
+      'assigned': 'background: #3b82f6; color: white;',
+      'in progress': 'background: #f59e0b; color: white;',
+      'completed': 'background: #10b981; color: white;',
+      'refused': 'background: #ef4444; color: white;',
+      'cancelled': 'background: #6b7280; color: white;'
+    };
+    // Default to unassigned if status is null/undefined
+    const style = statusColors[status] || statusColors['unassigned'];
+    // Handle status translation - replace all spaces with empty string for translation key
+    const translationKey = (status || 'unassigned').replace(/\s+/g, '');
+    const label = I18n.t(translationKey) || status;
+    return `<span style="padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; ${style}">${label}</span>`;
   },
 
   _openTaskModal(taskId = null) {
+    const me = Auth.currentUser();
     const task = taskId ? Storage.tasks().find(t => t.id === taskId) : null;
+    const isEmployee = me.role === 'employee';
+    
+    // If employee viewing existing task, show read-only card view
+    if (task && isEmployee) {
+      this._openTaskReadOnlyView(task);
+      return;
+    }
+    
     const modalBg = document.createElement('div');
     modalBg.className = 'modal-backdrop';
     modalBg.setAttribute('role', 'dialog');
     modalBg.setAttribute('aria-modal', 'true');
+    
+    // Add animation
+    setTimeout(() => modalBg.classList.add('modal-show'), 10);
 
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    modal.className = 'modal modal-animated';
+    modal.style.maxWidth = '700px';
+    modal.style.maxHeight = '90vh';
+    modal.style.overflowY = 'auto';
 
     const header = document.createElement('div');
     header.className = 'header';
@@ -671,10 +834,21 @@ export const UI = {
     const form = document.createElement('div');
     form.className = 'flex flex-col gap-3';
 
+    // Project selector
+    const projectSelect = document.createElement('select');
+    projectSelect.className = 'input';
+    projectSelect.id = 't-project';
+    projectSelect.required = true;
+    const projects = Storage.projects();
+    projectSelect.innerHTML = `<option value="">${I18n.t('selectProject')}</option>` +
+      projects.map(p => `<option value="${p.id}" ${task && task.projectId === p.id ? 'selected' : ''}>${p.name}</option>`).join('');
+    form.appendChild(projectSelect);
+
     const titleInput = document.createElement('input');
     titleInput.className = 'input';
     titleInput.id = 't-title';
     titleInput.placeholder = I18n.t('title');
+    titleInput.required = true;
     titleInput.value = task ? task.title : '';
     form.appendChild(titleInput);
 
@@ -683,6 +857,7 @@ export const UI = {
     descTextarea.id = 't-desc';
     descTextarea.placeholder = I18n.t('description');
     descTextarea.rows = 3;
+    descTextarea.required = true;
     descTextarea.textContent = task ? task.description : '';
     form.appendChild(descTextarea);
 
@@ -690,10 +865,33 @@ export const UI = {
     hoursInput.className = 'input';
     hoursInput.id = 't-planned';
     hoursInput.type = 'number';
+    hoursInput.min = '0';
     hoursInput.placeholder = I18n.t('plannedHours');
+    hoursInput.required = true;
     hoursInput.value = task ? task.plannedHours || '' : '';
     form.appendChild(hoursInput);
+    
+    // Checkbox for creating unassigned task (only when creating new task)
+    let createUnassignedCheckbox = null;
+    let assigneeContainer = null;
+    if (!task) {
+      const unassignedDiv = document.createElement('div');
+      unassignedDiv.className = 'flex items-center gap-2';
+      createUnassignedCheckbox = document.createElement('input');
+      createUnassignedCheckbox.type = 'checkbox';
+      createUnassignedCheckbox.id = 't-unassigned';
+      createUnassignedCheckbox.className = 'checkbox';
+      const unassignedLabel = document.createElement('label');
+      unassignedLabel.htmlFor = 't-unassigned';
+      unassignedLabel.textContent = I18n.t('createUnassignedTask');
+      unassignedDiv.appendChild(createUnassignedCheckbox);
+      unassignedDiv.appendChild(unassignedLabel);
+      form.appendChild(unassignedDiv);
+    }
 
+    // Assignee selector
+    assigneeContainer = document.createElement('div');
+    assigneeContainer.id = 't-assignee-container';
     const assigneeSelect = document.createElement('select');
     assigneeSelect.className = 'input';
     assigneeSelect.id = 't-assignees';
@@ -708,7 +906,74 @@ export const UI = {
       }
       assigneeSelect.appendChild(opt);
     });
-    form.appendChild(assigneeSelect);
+    assigneeContainer.appendChild(assigneeSelect);
+    form.appendChild(assigneeContainer);
+    
+    // Handle checkbox change
+    if (createUnassignedCheckbox) {
+      createUnassignedCheckbox.addEventListener('change', (e) => {
+        assigneeContainer.style.display = e.target.checked ? 'none' : 'block';
+      });
+    }
+    
+    // Status selector (employees can change status)
+    if (task) {
+      const statusSelect = document.createElement('select');
+      statusSelect.className = 'input';
+      statusSelect.id = 't-status';
+      statusSelect.innerHTML = `
+        <option value="undefined" ${task.status === 'undefined' ? 'selected' : ''}>${I18n.t('undefined')}</option>
+        <option value="unassigned" ${task.status === 'unassigned' ? 'selected' : ''}>${I18n.t('unassigned')}</option>
+        <option value="assigned" ${task.status === 'assigned' ? 'selected' : ''}>${I18n.t('assigned')}</option>
+        <option value="in progress" ${task.status === 'in progress' ? 'selected' : ''}>${I18n.t('inProgress')}</option>
+        <option value="completed" ${task.status === 'completed' ? 'selected' : ''}>${I18n.t('completed')}</option>
+        <option value="refused" ${task.status === 'refused' ? 'selected' : ''}>${I18n.t('refused')}</option>
+        <option value="cancelled" ${task.status === 'cancelled' ? 'selected' : ''}>${I18n.t('cancelled')}</option>
+      `;
+      const statusLabel = document.createElement('label');
+      statusLabel.textContent = I18n.t('status') + ':';
+      statusLabel.style.fontWeight = '600';
+      form.appendChild(statusLabel);
+      form.appendChild(statusSelect);
+    }
+    
+    // Comments section for existing tasks
+    if (task) {
+      const commentsSection = document.createElement('div');
+      commentsSection.style.cssText = 'border-top: 2px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem;';
+      
+      const commentsTitle = document.createElement('h3');
+      commentsTitle.textContent = I18n.t('taskComments');
+      commentsTitle.style.cssText = 'font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;';
+      commentsSection.appendChild(commentsTitle);
+      
+      // Display existing comments
+      if (task.comments && task.comments.length > 0) {
+        const commentsList = document.createElement('div');
+        commentsList.style.cssText = 'max-height: 200px; overflow-y: auto; margin-bottom: 1rem; background: #f9fafb; padding: 0.75rem; border-radius: 8px;';
+        task.comments.forEach(c => {
+          const commentDiv = document.createElement('div');
+          commentDiv.style.cssText = 'margin-bottom: 0.75rem; padding: 0.5rem; background: white; border-radius: 6px; border-left: 3px solid #667eea;';
+          commentDiv.innerHTML = `
+            <div style="font-weight: 600; color: #4f46e5; margin-bottom: 0.25rem;">${c.by}</div>
+            <div style="font-size: 0.875rem; color: #374151;">${c.text}</div>
+            <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">${new Date(c.at).toLocaleString()}</div>
+          `;
+          commentsList.appendChild(commentDiv);
+        });
+        commentsSection.appendChild(commentsList);
+      }
+      
+      // Add comment input
+      const commentInput = document.createElement('textarea');
+      commentInput.className = 'input';
+      commentInput.id = 't-comment';
+      commentInput.placeholder = I18n.t('addComment');
+      commentInput.rows = 2;
+      commentsSection.appendChild(commentInput);
+      
+      form.appendChild(commentsSection);
+    }
 
     const btnRow = document.createElement('div');
     btnRow.className = 'flex justify-end gap-2 mt-2';
@@ -722,36 +987,97 @@ export const UI = {
     const saveBtn = document.createElement('button');
     saveBtn.className = 'btn';
     saveBtn.textContent = I18n.t('save');
+    saveBtn.style.cssText = 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: transform 0.2s;';
+    saveBtn.addEventListener('mouseenter', () => saveBtn.style.transform = 'scale(1.05)');
+    saveBtn.addEventListener('mouseleave', () => saveBtn.style.transform = 'scale(1)');
     saveBtn.addEventListener('click', () => {
       const title = titleInput.value.trim();
       const desc = descTextarea.value.trim();
       const planned = Number(hoursInput.value) || 0;
-      const assignees = Array.from(assigneeSelect.selectedOptions).map(o => o.value);
+      const projectId = document.getElementById('t-project')?.value;
+      const status = document.getElementById('t-status')?.value || 'unassigned';
+      const commentText = document.getElementById('t-comment')?.value.trim();
+      const createUnassigned = document.getElementById('t-unassigned')?.checked || false;
+      
+      // Get assignees only if not creating unassigned task
+      let assignees = [];
+      if (!createUnassigned || task) {
+        assignees = Array.from(assigneeSelect.selectedOptions).map(o => o.value);
+      }
 
-      if (!title) {
-        alert(I18n.t('titleRequired'));
-        return;
+      // Validation for new tasks
+      if (!task) {
+        const missingFields = [];
+        if (!projectId) missingFields.push(I18n.t('projectName'));
+        if (!title) missingFields.push(I18n.t('title'));
+        if (!desc) missingFields.push(I18n.t('description'));
+        if (!planned || planned <= 0) missingFields.push(I18n.t('plannedHours'));
+        
+        if (missingFields.length > 0) {
+          alert(`${I18n.t('allFieldsRequired')}: ${missingFields.join(', ')}`);
+          return;
+        }
       }
 
       if (task) {
-        Storage.updateTask(task.id, { title, description: desc, plannedHours: planned, assignees });
+        const updates = {};
+        
+        // Admins and mini_admins can update everything
+        updates.title = title;
+        updates.description = desc;
+        updates.plannedHours = planned;
+        updates.assignees = assignees;
+        updates.projectId = projectId || task.projectId;
+        
+        // Everyone can update status
+        if (status !== task.status) {
+          updates.status = status;
+          // Add status change to comments
+          if (!task.comments) task.comments = [];
+          updates.comments = [...task.comments, {
+            by: me.username,
+            text: `${I18n.t('statusChange')}: ${I18n.t(task.status.replace(/\s+/g, ''))} → ${I18n.t(status.replace(/\s+/g, ''))}`,
+            at: Utils.nowIso()
+          }];
+        }
+        
+        // Add new comment if provided
+        if (commentText) {
+          if (!updates.comments) {
+            updates.comments = task.comments ? [...task.comments] : [];
+          }
+          updates.comments.push({
+            by: me.username,
+            text: commentText,
+            at: Utils.nowIso()
+          });
+        }
+        
+        Storage.updateTask(task.id, updates);
       } else {
         const newTask = {
           id: Utils.uuid(),
-          projectId: null,
+          projectId: projectId,
           title,
           description: desc,
           images: [],
           plannedHours: planned,
           assignees,
-          status: assignees.length ? 'in progress' : 'unassigned',
-          timeLog: [{ type: 'plan', by: 'system', hours: planned, at: Utils.nowIso() }],
+          status: assignees.length > 0 ? 'assigned' : 'unassigned',
+          timeLog: [{ type: 'plan', by: me.username, hours: planned, at: Utils.nowIso() }],
+          comments: [],
           createdAt: Utils.nowIso()
         };
         Storage.addTask(newTask);
       }
-      modalBg.remove();
-      Router.navigate('/tasks');
+      
+      // Fade out modal with animation
+      modalBg.classList.remove('modal-show');
+      setTimeout(() => modalBg.remove(), 300);
+      
+      // Refresh current view by re-navigating to current route
+      const currentPath = window.location.hash.substring(1);
+      Router.navigate(currentPath || '/dashboard');
     });
     btnRow.appendChild(saveBtn);
     form.appendChild(btnRow);
@@ -780,9 +1106,235 @@ export const UI = {
     // Focus first input
     setTimeout(() => titleInput.focus(), 100);
   },
+  
+  _openTaskReadOnlyView(task) {
+    const me = Auth.currentUser();
+    
+    const modalBg = document.createElement('div');
+    modalBg.className = 'modal-backdrop';
+    modalBg.setAttribute('role', 'dialog');
+    modalBg.setAttribute('aria-modal', 'true');
+    
+    // Add animation
+    setTimeout(() => modalBg.classList.add('modal-show'), 10);
 
-  _renderOrders(container) {
+    const modal = document.createElement('div');
+    modal.className = 'modal modal-animated';
+    modal.style.maxWidth = '650px';
+
+    // Header with gradient
+    const header = document.createElement('div');
+    header.className = 'header';
+    header.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    header.style.color = 'white';
+    const headerTitle = document.createElement('div');
+    headerTitle.className = 'h-title';
+    headerTitle.textContent = task.title;
+    header.appendChild(headerTitle);
+    modal.appendChild(header);
+
+    const content = document.createElement('div');
+    content.className = 'flex flex-col gap-4';
+    content.style.padding = '1.5rem';
+    
+    // Project info
+    if (task.projectId) {
+      const project = Storage.projects().find(p => p.id === task.projectId);
+      if (project) {
+        const projectDiv = document.createElement('div');
+        projectDiv.style.cssText = 'padding: 0.75rem; background: linear-gradient(135deg, #f093fb 0%, #f5576c 20%); border-radius: 8px; color: white; font-weight: 600;';
+        projectDiv.innerHTML = `📁 ${I18n.t('projectName')}: ${project.name}`;
+        content.appendChild(projectDiv);
+      }
+    }
+    
+    // Description
+    const descDiv = document.createElement('div');
+    descDiv.style.cssText = 'padding: 1rem; background: #f9fafb; border-radius: 8px;';
+    descDiv.innerHTML = `
+      <div style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">${I18n.t('description')}:</div>
+      <div style="color: #6b7280;">${task.description || I18n.t('none')}</div>
+    `;
+    content.appendChild(descDiv);
+    
+    // Task details grid
+    const detailsGrid = document.createElement('div');
+    detailsGrid.className = 'grid grid-cols-2 gap-3';
+    
+    detailsGrid.innerHTML = `
+      <div style="padding: 0.75rem; background: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+        <div style="font-size: 0.875rem; color: #1e40af; font-weight: 600;">${I18n.t('plannedHours')}</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #1e3a8a;">${task.plannedHours || 0}h</div>
+      </div>
+      <div style="padding: 0.75rem; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #22c55e;">
+        <div style="font-size: 0.875rem; color: #15803d; font-weight: 600;">${I18n.t('status')}</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #166534;">${I18n.t(task.status.replace(/\s+/g, ''))}</div>
+      </div>
+    `;
+    content.appendChild(detailsGrid);
+    
+    // Assignees
+    if (task.assignees && task.assignees.length > 0) {
+      const assigneesDiv = document.createElement('div');
+      assigneesDiv.style.cssText = 'padding: 1rem; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;';
+      assigneesDiv.innerHTML = `
+        <div style="font-weight: 600; color: #92400e; margin-bottom: 0.5rem;">👥 ${I18n.t('assignees')}:</div>
+        <div style="color: #78350f;">${task.assignees.join(', ')}</div>
+      `;
+      content.appendChild(assigneesDiv);
+    }
+    
+    // Comments section
+    if (task.comments && task.comments.length > 0) {
+      const commentsDiv = document.createElement('div');
+      commentsDiv.style.cssText = 'border-top: 2px solid #e5e7eb; padding-top: 1rem;';
+      
+      const commentsTitle = document.createElement('h3');
+      commentsTitle.textContent = I18n.t('taskComments');
+      commentsTitle.style.cssText = 'font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;';
+      commentsDiv.appendChild(commentsTitle);
+      
+      const commentsList = document.createElement('div');
+      commentsList.style.cssText = 'max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;';
+      task.comments.forEach(c => {
+        const commentCard = document.createElement('div');
+        commentCard.style.cssText = 'padding: 0.75rem; background: white; border-radius: 8px; border-left: 3px solid #667eea; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
+        commentCard.innerHTML = `
+          <div style="font-weight: 600; color: #4f46e5; margin-bottom: 0.25rem;">${c.by}</div>
+          <div style="font-size: 0.875rem; color: #374151;">${c.text}</div>
+          <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">${new Date(c.at).toLocaleString()}</div>
+        `;
+        commentsList.appendChild(commentCard);
+      });
+      commentsDiv.appendChild(commentsList);
+      content.appendChild(commentsDiv);
+    }
+    
+    // Status update section for employees
+    const statusUpdateDiv = document.createElement('div');
+    statusUpdateDiv.style.cssText = 'border-top: 2px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem;';
+    
+    const statusLabel = document.createElement('label');
+    statusLabel.textContent = I18n.t('status') + ':';
+    statusLabel.style.cssText = 'font-weight: 600; display: block; margin-bottom: 0.5rem;';
+    statusUpdateDiv.appendChild(statusLabel);
+    
+    const statusSelect = document.createElement('select');
+    statusSelect.className = 'input';
+    statusSelect.id = 't-status-readonly';
+    statusSelect.innerHTML = `
+      <option value="undefined" ${task.status === 'undefined' ? 'selected' : ''}>${I18n.t('undefined')}</option>
+      <option value="unassigned" ${task.status === 'unassigned' ? 'selected' : ''}>${I18n.t('unassigned')}</option>
+      <option value="assigned" ${task.status === 'assigned' ? 'selected' : ''}>${I18n.t('assigned')}</option>
+      <option value="in progress" ${task.status === 'in progress' ? 'selected' : ''}>${I18n.t('inProgress')}</option>
+      <option value="completed" ${task.status === 'completed' ? 'selected' : ''}>${I18n.t('completed')}</option>
+      <option value="refused" ${task.status === 'refused' ? 'selected' : ''}>${I18n.t('refused')}</option>
+      <option value="cancelled" ${task.status === 'cancelled' ? 'selected' : ''}>${I18n.t('cancelled')}</option>
+    `;
+    statusUpdateDiv.appendChild(statusSelect);
+    
+    const commentLabel = document.createElement('label');
+    commentLabel.textContent = I18n.t('addComment') + ':';
+    commentLabel.style.cssText = 'font-weight: 600; display: block; margin-top: 0.75rem; margin-bottom: 0.5rem;';
+    statusUpdateDiv.appendChild(commentLabel);
+    
+    const commentInput = document.createElement('textarea');
+    commentInput.className = 'input';
+    commentInput.id = 't-comment-readonly';
+    commentInput.placeholder = I18n.t('addComment');
+    commentInput.rows = 2;
+    statusUpdateDiv.appendChild(commentInput);
+    
+    content.appendChild(statusUpdateDiv);
+    
+    // Buttons
+    const btnRow = document.createElement('div');
+    btnRow.className = 'flex justify-end gap-2';
+    btnRow.style.marginTop = '1rem';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'btn ghost';
+    closeBtn.textContent = I18n.t('close');
+    closeBtn.addEventListener('click', () => {
+      modalBg.classList.remove('modal-show');
+      setTimeout(() => modalBg.remove(), 300);
+    });
+    btnRow.appendChild(closeBtn);
+
+    const updateBtn = document.createElement('button');
+    updateBtn.className = 'btn';
+    updateBtn.textContent = I18n.t('save');
+    updateBtn.style.cssText = 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: transform 0.2s;';
+    updateBtn.addEventListener('mouseenter', () => updateBtn.style.transform = 'scale(1.05)');
+    updateBtn.addEventListener('mouseleave', () => updateBtn.style.transform = 'scale(1)');
+    updateBtn.addEventListener('click', () => {
+      const newStatus = statusSelect.value;
+      const commentText = commentInput.value.trim();
+      
+      const updates = {};
+      
+      if (newStatus !== task.status) {
+        updates.status = newStatus;
+        if (!task.comments) task.comments = [];
+        updates.comments = [...task.comments, {
+          by: me.username,
+          text: `${I18n.t('statusChange')}: ${I18n.t(task.status.replace(/\s+/g, ''))} → ${I18n.t(newStatus.replace(/\s+/g, ''))}`,
+          at: Utils.nowIso()
+        }];
+      }
+      
+      if (commentText) {
+        if (!updates.comments) {
+          updates.comments = task.comments ? [...task.comments] : [];
+        }
+        updates.comments.push({
+          by: me.username,
+          text: commentText,
+          at: Utils.nowIso()
+        });
+      }
+      
+      if (Object.keys(updates).length > 0) {
+        Storage.updateTask(task.id, updates);
+      }
+      
+      modalBg.classList.remove('modal-show');
+      setTimeout(() => modalBg.remove(), 300);
+      
+      const currentPath = window.location.hash.substring(1);
+      Router.navigate(currentPath || '/dashboard');
+    });
+    btnRow.appendChild(updateBtn);
+    content.appendChild(btnRow);
+
+    modal.appendChild(content);
+    modalBg.appendChild(modal);
+    document.body.appendChild(modalBg);
+
+    // Keyboard handler
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        modalBg.classList.remove('modal-show');
+        setTimeout(() => modalBg.remove(), 300);
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+
+    // Close on backdrop click
+    modalBg.addEventListener('click', (e) => {
+      if (e.target === modalBg) {
+        modalBg.classList.remove('modal-show');
+        setTimeout(() => modalBg.remove(), 300);
+        document.removeEventListener('keydown', handleEscape);
+      }
+    });
+  },
+
+  _renderOrders(container, view = 'my') {
     container.innerHTML = '';
+    const me = Auth.currentUser();
+    
     const card = document.createElement('div');
     card.className = 'card';
 
@@ -790,7 +1342,7 @@ export const UI = {
     header.className = 'header';
     const headerTitle = document.createElement('div');
     headerTitle.className = 'h-title';
-    headerTitle.textContent = I18n.t('orders');
+    headerTitle.textContent = view === 'all' ? I18n.t('allOrders') : I18n.t('myOrders');
     header.appendChild(headerTitle);
 
     const newBtn = document.createElement('button');
@@ -799,26 +1351,124 @@ export const UI = {
     newBtn.textContent = I18n.t('createOrder');
     header.appendChild(newBtn);
     card.appendChild(header);
+    
+    // Add filters for "all orders" view
+    if (view === 'all') {
+      const filtersDiv = document.createElement('div');
+      filtersDiv.className = 'flex flex-wrap gap-3 mb-4';
+      filtersDiv.style.padding = '0 1rem';
+      
+      // Status filter
+      const statusFilter = document.createElement('select');
+      statusFilter.className = 'input';
+      statusFilter.id = 'filter-status';
+      statusFilter.style.flex = '1';
+      statusFilter.style.minWidth = '150px';
+      statusFilter.innerHTML = `
+        <option value="">${I18n.t('allStatuses')}</option>
+        <option value="pending">${I18n.t('pending')}</option>
+        <option value="in_search">${I18n.t('inSearch')}</option>
+        <option value="ordered">${I18n.t('ordered')}</option>
+        <option value="in_progress">${I18n.t('inProgress')}</option>
+        <option value="completed">${I18n.t('completed')}</option>
+        <option value="refused">${I18n.t('refused')}</option>
+        <option value="cancelled">${I18n.t('cancelled')}</option>
+      `;
+      filtersDiv.appendChild(statusFilter);
+      
+      // Urgent filter
+      const urgentFilter = document.createElement('select');
+      urgentFilter.className = 'input';
+      urgentFilter.id = 'filter-urgent';
+      urgentFilter.style.flex = '1';
+      urgentFilter.style.minWidth = '150px';
+      urgentFilter.innerHTML = `
+        <option value="">${I18n.t('allOrders')}</option>
+        <option value="urgent">🔥 ${I18n.t('urgent')} Only</option>
+        <option value="not-urgent">${I18n.t('notUrgent')}</option>
+      `;
+      filtersDiv.appendChild(urgentFilter);
+      
+      card.appendChild(filtersDiv);
+    }
 
     const list = document.createElement('div');
     list.className = 'grid gap-3';
+    list.id = 'orders-list';
 
-    const orders = Storage.orders().slice().reverse();
-    orders.forEach(o => {
-      const el = document.createElement('div');
-      el.className = 'task-card';
-      el.innerHTML = `
-        <div class="flex-1">
-          <strong>${o.title}</strong>
-          <div class="small">${o.description || ''}</div>
-        </div>
-        <div class="text-right">
-          <div class="small">${o.status}</div>
-          <div class="mt-2"><button class="btn ghost" data-id="${o.id}">${I18n.t('view')}</button></div>
-        </div>
-      `;
-      list.appendChild(el);
-    });
+    let allOrders = Storage.orders();
+    
+    // Filter orders based on view and role
+    if (view === 'my') {
+      // Show only orders created by current user
+      allOrders = allOrders.filter(o => o.requestedBy === me.username);
+    } else if (view === 'all') {
+      // Only admins, mini_admins, and orders_manager can see all orders
+      if (me.role !== 'admin' && me.role !== 'mini_admin' && me.role !== 'orders_manager') {
+        container.innerHTML = `<div class="card"><div class="h-title">${I18n.t('accessDenied')}</div><div class="small">${I18n.t('noAccessToAllOrders')}</div></div>`;
+        return;
+      }
+      // Show all orders (no filtering)
+    }
+    
+    const renderOrdersList = (filteredOrders) => {
+      list.innerHTML = '';
+      const orders = filteredOrders.slice().reverse();
+      orders.forEach(o => {
+        const el = document.createElement('div');
+        el.className = 'task-card';
+        const urgentBadge = o.isUrgent ? `<span class="badge badge-urgent">🔥 ${I18n.t('urgent')}</span>` : '';
+        const arrivalInfo = o.arrivalDate ? `<div class="text-xs text-gray-600">${I18n.t('arrivalDate')}: ${new Date(o.arrivalDate).toLocaleDateString()}</div>` : '';
+        el.innerHTML = `
+          <div class="flex-1">
+            <strong>${o.title}</strong> ${urgentBadge}
+            <div class="small">${o.description || ''}</div>
+            ${arrivalInfo}
+          </div>
+          <div class="text-right">
+            <div class="small">${o.status}</div>
+            <div class="mt-2"><button class="btn ghost" data-id="${o.id}">${I18n.t('view')}</button></div>
+          </div>
+        `;
+        list.appendChild(el);
+        
+        // Re-attach event listener
+        el.querySelector('button[data-id]').addEventListener('click', () => {
+          this._openOrderModal(o.id);
+        });
+      });
+    };
+    
+    renderOrdersList(allOrders);
+    
+    // Add filter change handlers
+    if (view === 'all') {
+      const statusFilter = card.querySelector('#filter-status');
+      const urgentFilter = card.querySelector('#filter-urgent');
+      
+      const applyFilters = () => {
+        let filtered = allOrders;
+        
+        const selectedStatus = statusFilter.value;
+        const selectedUrgent = urgentFilter.value;
+        
+        if (selectedStatus) {
+          filtered = filtered.filter(o => o.status === selectedStatus);
+        }
+        
+        if (selectedUrgent === 'urgent') {
+          filtered = filtered.filter(o => o.isUrgent === true);
+        } else if (selectedUrgent === 'not-urgent') {
+          filtered = filtered.filter(o => !o.isUrgent);
+        }
+        
+        renderOrdersList(filtered);
+      };
+      
+      statusFilter.addEventListener('change', applyFilters);
+      urgentFilter.addEventListener('change', applyFilters);
+    }
+    
     card.appendChild(list);
     container.appendChild(card);
 
@@ -826,75 +1476,236 @@ export const UI = {
     newBtn.addEventListener('click', () => this._openOrderModal());
   },
 
-  _openOrderModal() {
+  _openOrderModal(orderId = null) {
+    const order = orderId ? Storage.orders().find(o => o.id === orderId) : null;
+    const me = Auth.currentUser();
+    const isOrderManager = me.role === 'orders_manager' || me.role === 'admin' || me.role === 'mini_admin';
+    
     const modalBg = document.createElement('div');
     modalBg.className = 'modal-backdrop';
     modalBg.setAttribute('role', 'dialog');
     modalBg.setAttribute('aria-modal', 'true');
+    
+    // Add animation
+    setTimeout(() => modalBg.classList.add('modal-show'), 10);
 
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    modal.className = 'modal modal-animated';
 
     const header = document.createElement('div');
     header.className = 'header';
     const headerTitle = document.createElement('div');
     headerTitle.className = 'h-title';
-    headerTitle.textContent = I18n.t('createOrder');
+    headerTitle.textContent = order ? order.title : I18n.t('createOrder');
     header.appendChild(headerTitle);
     modal.appendChild(header);
 
     const form = document.createElement('div');
     form.className = 'flex flex-col gap-3';
 
-    const titleInput = document.createElement('input');
-    titleInput.className = 'input';
-    titleInput.id = 'o-title';
-    titleInput.placeholder = I18n.t('title');
-    form.appendChild(titleInput);
+    if (!order) {
+      // Creating new order
+      const titleInput = document.createElement('input');
+      titleInput.className = 'input';
+      titleInput.id = 'o-title';
+      titleInput.placeholder = I18n.t('title');
+      form.appendChild(titleInput);
 
-    const descTextarea = document.createElement('textarea');
-    descTextarea.className = 'input';
-    descTextarea.id = 'o-desc';
-    descTextarea.placeholder = I18n.t('description');
-    descTextarea.rows = 3;
-    form.appendChild(descTextarea);
+      const descTextarea = document.createElement('textarea');
+      descTextarea.className = 'input';
+      descTextarea.id = 'o-desc';
+      descTextarea.placeholder = I18n.t('description');
+      descTextarea.rows = 3;
+      form.appendChild(descTextarea);
 
-    const btnRow = document.createElement('div');
-    btnRow.className = 'flex justify-end gap-2 mt-2';
+      // Add urgent checkbox
+      const urgentDiv = document.createElement('div');
+      urgentDiv.className = 'flex items-center gap-2';
+      const urgentCheckbox = document.createElement('input');
+      urgentCheckbox.type = 'checkbox';
+      urgentCheckbox.id = 'o-urgent';
+      urgentCheckbox.className = 'checkbox';
+      const urgentLabel = document.createElement('label');
+      urgentLabel.htmlFor = 'o-urgent';
+      urgentLabel.textContent = '🔥 ' + I18n.t('markAsUrgent');
+      urgentDiv.appendChild(urgentCheckbox);
+      urgentDiv.appendChild(urgentLabel);
+      form.appendChild(urgentDiv);
 
-    const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'btn ghost';
-    cancelBtn.textContent = I18n.t('cancel');
-    cancelBtn.addEventListener('click', () => modalBg.remove());
-    btnRow.appendChild(cancelBtn);
+      const btnRow = document.createElement('div');
+      btnRow.className = 'flex justify-end gap-2 mt-2';
 
-    const createBtn = document.createElement('button');
-    createBtn.className = 'btn';
-    createBtn.textContent = I18n.t('create');
-    createBtn.addEventListener('click', () => {
-      const title = titleInput.value.trim();
-      const desc = descTextarea.value.trim();
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'btn ghost';
+      cancelBtn.textContent = I18n.t('cancel');
+      cancelBtn.addEventListener('click', () => {
+        modalBg.classList.remove('modal-show');
+        setTimeout(() => modalBg.remove(), 300);
+      });
+      btnRow.appendChild(cancelBtn);
 
-      if (!title) {
-        alert(I18n.t('titleRequired'));
-        return;
+      const createBtn = document.createElement('button');
+      createBtn.className = 'btn';
+      createBtn.textContent = I18n.t('create');
+      createBtn.addEventListener('click', () => {
+        const title = titleInput.value.trim();
+        const desc = descTextarea.value.trim();
+        const isUrgent = urgentCheckbox.checked;
+
+        if (!title) {
+          alert(I18n.t('titleRequired'));
+          return;
+        }
+
+        const order = {
+          id: Utils.uuid(),
+          title,
+          description: desc,
+          date: Utils.nowIso(),
+          status: 'pending',
+          requestedBy: me.username,
+          isUrgent: isUrgent,
+          arrivalDate: null,
+          notes: ''
+        };
+        Storage.addOrder(order);
+        modalBg.classList.remove('modal-show');
+        setTimeout(() => modalBg.remove(), 300);
+        // Refresh current page
+        const currentPath = location.hash.replace('#', '') || '/';
+        Router.navigate(currentPath);
+      });
+      btnRow.appendChild(createBtn);
+      form.appendChild(btnRow);
+
+      setTimeout(() => titleInput.focus(), 100);
+    } else {
+      // Viewing/Editing existing order
+      const detailsDiv = document.createElement('div');
+      detailsDiv.className = 'flex flex-col gap-2';
+      
+      detailsDiv.innerHTML = `
+        <div><strong>${I18n.t('title')}:</strong> ${order.title}</div>
+        <div><strong>${I18n.t('description')}:</strong> ${order.description || I18n.t('none')}</div>
+        <div><strong>${I18n.t('requestedBy')}:</strong> ${order.requestedBy}</div>
+        <div><strong>${I18n.t('date')}:</strong> ${new Date(order.date).toLocaleDateString()}</div>
+        ${order.isUrgent ? `<div><strong>${I18n.t('urgent')}:</strong> 🔥 ${I18n.t('yes')}</div>` : ''}
+      `;
+      form.appendChild(detailsDiv);
+
+      if (isOrderManager) {
+        // Order managers can edit status and arrival date
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'flex flex-col gap-1';
+        const statusLabel = document.createElement('label');
+        statusLabel.textContent = I18n.t('status');
+        statusDiv.appendChild(statusLabel);
+        
+        const statusSelect = document.createElement('select');
+        statusSelect.id = 'o-status';
+        statusSelect.className = 'input';
+        statusSelect.innerHTML = `
+          <option value="pending">${I18n.t('pending')}</option>
+          <option value="in_search">${I18n.t('inSearch')}</option>
+          <option value="ordered">${I18n.t('ordered')}</option>
+          <option value="in_progress">${I18n.t('inProgress')}</option>
+          <option value="completed">${I18n.t('completed')}</option>
+          <option value="refused">${I18n.t('refused')}</option>
+          <option value="cancelled">${I18n.t('cancelled')}</option>
+        `;
+        statusSelect.value = order.status || 'pending';
+        statusDiv.appendChild(statusSelect);
+        form.appendChild(statusDiv);
+
+        const arrivalDiv = document.createElement('div');
+        arrivalDiv.className = 'flex flex-col gap-1';
+        const arrivalLabel = document.createElement('label');
+        arrivalLabel.textContent = I18n.t('arrivalDate');
+        arrivalDiv.appendChild(arrivalLabel);
+        
+        const arrivalInput = document.createElement('input');
+        arrivalInput.type = 'date';
+        arrivalInput.id = 'o-arrival';
+        arrivalInput.className = 'input';
+        if (order.arrivalDate) {
+          arrivalInput.value = order.arrivalDate.split('T')[0];
+        }
+        arrivalDiv.appendChild(arrivalInput);
+        form.appendChild(arrivalDiv);
+
+        const notesDiv = document.createElement('div');
+        notesDiv.className = 'flex flex-col gap-1';
+        const notesLabel = document.createElement('label');
+        notesLabel.textContent = I18n.t('notes');
+        notesDiv.appendChild(notesLabel);
+        
+        const notesTextarea = document.createElement('textarea');
+        notesTextarea.id = 'o-notes';
+        notesTextarea.className = 'input';
+        notesTextarea.rows = 3;
+        notesTextarea.value = order.notes || '';
+        notesDiv.appendChild(notesTextarea);
+        form.appendChild(notesDiv);
+
+        const btnRow = document.createElement('div');
+        btnRow.className = 'flex justify-end gap-2 mt-2';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn ghost';
+        cancelBtn.textContent = I18n.t('cancel');
+        cancelBtn.addEventListener('click', () => {
+          modalBg.classList.remove('modal-show');
+          setTimeout(() => modalBg.remove(), 300);
+        });
+        btnRow.appendChild(cancelBtn);
+
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'btn';
+        saveBtn.textContent = I18n.t('save');
+        saveBtn.addEventListener('click', () => {
+          const newStatus = statusSelect.value;
+          const newArrival = arrivalInput.value ? new Date(arrivalInput.value).toISOString() : null;
+          const newNotes = notesTextarea.value.trim();
+
+          Storage.updateOrder(order.id, {
+            status: newStatus,
+            arrivalDate: newArrival,
+            notes: newNotes
+          });
+          modalBg.classList.remove('modal-show');
+          setTimeout(() => modalBg.remove(), 300);
+          // Refresh current page
+          const currentPath = location.hash.replace('#', '') || '/';
+          Router.navigate(currentPath);
+        });
+        btnRow.appendChild(saveBtn);
+        form.appendChild(btnRow);
+      } else {
+        // Regular users can only view
+        const statusDiv = document.createElement('div');
+        statusDiv.innerHTML = `<div><strong>${I18n.t('status')}:</strong> ${order.status}</div>`;
+        if (order.arrivalDate) {
+          statusDiv.innerHTML += `<div class="mt-2"><strong>${I18n.t('arrivalDate')}:</strong> ${new Date(order.arrivalDate).toLocaleDateString()}</div>`;
+        }
+        if (order.notes) {
+          statusDiv.innerHTML += `<div class="mt-2"><strong>${I18n.t('notes')}:</strong> ${order.notes}</div>`;
+        }
+        form.appendChild(statusDiv);
+
+        const btnRow = document.createElement('div');
+        btnRow.className = 'flex justify-end gap-2 mt-2';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'btn';
+        closeBtn.textContent = I18n.t('close');
+        closeBtn.addEventListener('click', () => {
+          modalBg.classList.remove('modal-show');
+          setTimeout(() => modalBg.remove(), 300);
+        });
+        btnRow.appendChild(closeBtn);
+        form.appendChild(btnRow);
       }
-
-      const me = Auth.currentUser();
-      const order = {
-        id: Utils.uuid(),
-        title,
-        description: desc,
-        date: Utils.nowIso(),
-        status: I18n.t('requested'),
-        requestedBy: me.username
-      };
-      Storage.addOrder(order);
-      modalBg.remove();
-      Router.navigate('/orders');
-    });
-    btnRow.appendChild(createBtn);
-    form.appendChild(btnRow);
+    }
 
     modal.appendChild(form);
     modalBg.appendChild(modal);
@@ -916,9 +1727,6 @@ export const UI = {
         document.removeEventListener('keydown', handleEscape);
       }
     });
-
-    // Focus first input
-    setTimeout(() => titleInput.focus(), 100);
   },
 
   _renderProjects(container) {
@@ -933,10 +1741,52 @@ export const UI = {
     header.appendChild(headerTitle);
     card.appendChild(header);
 
-    const content = document.createElement('div');
-    content.className = 'small';
-    content.textContent = 'Project management (to be completed)';
-    card.appendChild(content);
+    // Display all projects
+    const projects = Storage.projects();
+    
+    if (projects.length === 0) {
+      const noProjects = document.createElement('div');
+      noProjects.className = 'small';
+      noProjects.textContent = I18n.t('noProjects') || 'No projects';
+      card.appendChild(noProjects);
+    } else {
+      const projectList = document.createElement('div');
+      projectList.className = 'flex flex-col gap-3';
+      
+      projects.forEach(p => {
+        const projectCard = document.createElement('div');
+        projectCard.className = 'accent-bg';
+        projectCard.style.cursor = 'pointer';
+        
+        const projectTasks = Storage.tasks().filter(t => t.projectId === p.id);
+        const completedTasks = projectTasks.filter(t => t.status === 'completed' || t.status === 'done').length;
+        
+        projectCard.innerHTML = `
+          <div class="flex justify-between items-center">
+            <div>
+              <strong style="font-size: 1.1rem;">📁 ${p.name}</strong>
+              <div class="small mt-1">${I18n.t('tasks')}: ${projectTasks.length} (${completedTasks} ${I18n.t('completed')})</div>
+            </div>
+            <button class="btn secondary" data-project-id="${p.id}">${I18n.t('view')}</button>
+          </div>
+        `;
+        
+        projectList.appendChild(projectCard);
+      });
+      
+      card.appendChild(projectList);
+      
+      // Add event listeners
+      card.querySelectorAll('button[data-project-id]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const projectId = btn.getAttribute('data-project-id');
+          // For now, just navigate to all tasks filtered by this project
+          Router.navigate('/all-tasks');
+        });
+      });
+    }
+    
     container.appendChild(card);
   },
 
@@ -944,9 +1794,9 @@ export const UI = {
     container.innerHTML = '';
     const me = Auth.currentUser();
     
-    // Only admin and mini_admin can access
-    if (!['admin', 'mini_admin'].includes(me.role)) {
-      container.innerHTML = '<div class="card"><div class="h-title">Access Denied</div></div>';
+    // Only admin can manage users (not mini_admin)
+    if (me.role !== 'admin') {
+      container.innerHTML = '<div class="card"><div class="h-title">' + I18n.t('accessDenied') + '</div></div>';
       return;
     }
     
